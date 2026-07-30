@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🥛 Crate Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* ─── RESET ─── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Calibri', sans-serif;
+            background: #f3f5f6;
+            color: #1e1e1e;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ─── LOGIN ─── */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a5a7a, #2d7fa0);
+            padding: 20px;
+        }
+        .login-box {
+            background: #fff;
+            padding: 40px 35px;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .login-box h1 {
+            font-size: 28px;
+            color: #1a5a7a;
+            margin-bottom: 4px;
+        }
+        .login-box p.sub {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .login-users {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 16px 0 24px;
+        }
+        .login-user {
+            cursor: pointer;
+            padding: 14px 22px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background: #f8f9fa;
+            transition: 0.2s;
+            min-width: 90px;
+        }
+        .login-user:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        .login-user.active {
+            border-color: #1a5a7a;
+            background: #e8f0fe;
+        }
+        .login-user i {
+            font-size: 36px;
+            color: #1a5a7a;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .login-user .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .login-user .role {
+            font-size: 11px;
+            color: #888;
+        }
+        .login-form {
+            display: none;
+            margin-top: 8px;
+        }
+        .login-form.show {
+            display: block;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #ced4da;
+            border-radius: 6px;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+        .login-form input:focus {
+            border-color: #1a5a7a;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 90, 122, 0.15);
+        }
+        .login-form button {
+            width: 100%;
+            padding: 10px;
+            background: #1a5a7a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .login-form button:hover {
+            background: #134a66;
+        }
+        .login-error {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* ─── APP ─── */
+        .app {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            background: #fff;
+        }
+        .app.active {
+            display: flex;
+        }
+
+        /* ─── TOP BAR (Excel Ribbon) ─── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            padding: 6px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #d0d7de;
+            font-size: 13px;
+            flex-shrink: 0;
+            min-height: 44px;
+        }
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: #1a5a7a;
+            font-size: 17px;
+        }
+        .topbar .brand i {
+            font-size: 20px;
+        }
+        .topbar .sep {
+            width: 1px;
+            height: 26px;
+            background: #d0d7de;
+        }
+        .topbar .date-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .topbar .date-group label {
+            font-size: 12px;
+            color: #5f6368;
+        }
+        .topbar .date-group input[type="date"] {
+            padding: 3px 8px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            font-size: 13px;
+            background: #fff;
+        }
+        .topbar .status-badge {
+            font-size: 12px;
+            padding: 2px 12px;
+            border-radius: 12px;
+            background: #e9ecef;
+            color: #495057;
+            font-weight: 500;
+        }
+        .topbar .status-badge.complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        .topbar .status-badge.partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .topbar .btn-group {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .topbar .btn-group button {
+            padding: 4px 14px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .topbar .btn-group button:hover {
+            background: #e9ecef;
+        }
+        .topbar .btn-group button.save-btn {
+            background: #1a5a7a;
+            color: #fff;
+            border-color: #1a5a7a;
+        }
+        .topbar .btn-group button.save-btn:hover {
+            background: #134a66;
+        }
+        .topbar .btn-group button.complete-btn {
+            background: #28a745;
+            color: #fff;
+            border-color: #28a745;
+        }
+        .topbar .btn-group button.complete-btn:hover {
+            background: #1e7e34;
+        }
+        .topbar .btn-group button.complete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .topbar .btn-group button.print-btn {
+            background: #fff;
+            border-color: #d0d7de;
+        }
+        .topbar .btn-group button.print-btn:hover {
+            background: #e9ecef;
+        }
+        .topbar .save-ts {
+            font-size: 11px;
+            color: #6c757d;
+            margin-left: 2px;
+            white-space: nowrap;
+        }
+        .topbar .role-badge {
+            background: #1a5a7a;
+            color: #fff;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .topbar .logout-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 6px;
+        }
+        .topbar .logout-btn:hover {
+            color: #dc3545;
+        }
+
+        /* ─── SHEET TABS (Excel: at bottom of grid) ─── */
+        .sheet-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f3f5f6;
+            padding: 6px 12px 0 12px;
+        }
+        .sheet-tabs {
+            display: flex;
+            background: #e9ecef;
+            border-radius: 4px 4px 0 0;
+            padding: 0 8px;
+            flex-shrink: 0;
+            overflow-x: auto;
+            border-bottom: 1px solid #d0d7de;
+        }
+        .sheet-tabs .tab-btn {
+            padding: 6px 18px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: #5f6368;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .sheet-tabs .tab-btn:hover {
+            background: #dee2e6;
+        }
+        .sheet-tabs .tab-btn.active {
+            background: #fff;
+            border-bottom-color: #1a5a7a;
+            color: #1a5a7a;
+        }
+        .sheet-tabs .tab-btn i {
+            font-size: 13px;
+        }
+
+        /* ─── GRID WRAPPER ─── */
+        .grid-wrap {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-top: none;
+            overflow: auto;
+            position: relative;
+        }
+        .grid-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: fixed;
+            min-width: 650px;
+        }
+        .grid-wrap table th {
+            background: #f6f8fa;
+            color: #202124;
+            font-weight: 600;
+            padding: 4px 6px;
+            border-bottom: 2px solid #d0d7de;
+            border-right: 1px solid #e9ecef;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .grid-wrap table th:last-child {
+            border-right: none;
+        }
+        .grid-wrap table td {
+            padding: 1px 3px;
+            border-bottom: 1px solid #e9ecef;
+            border-right: 1px solid #e9ecef;
+            vertical-align: middle;
+            height: 30px;
+        }
+        .grid-wrap table td:last-child {
+            border-right: none;
+        }
+        .grid-wrap table tr:hover td {
+            background: #f0f7ff;
+        }
+        .grid-wrap table tr.row-hidden {
+            display: none;
+        }
+        .grid-wrap table tr.total-row td {
+            background: #f1f3f4;
+            font-weight: 700;
+            border-top: 2px solid #d0d7de;
+        }
+        .grid-wrap table tr.mismatch-row td {
+            background: #fff5f5;
+            font-weight: 600;
+        }
+        .grid-wrap table td.row-num {
+            text-align: center;
+            color: #6c757d;
+            font-size: 11px;
+            background: #f8f9fa;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            user-select: none;
+        }
+
+        /* ─── CELL INPUTS ─── */
+        .grid-wrap table input,
+        .grid-wrap table select {
+            width: 100%;
+            padding: 1px 3px;
+            border: 1px solid transparent;
+            border-radius: 2px;
+            font-size: 13px;
+            font-family: inherit;
+            background: transparent;
+            height: 26px;
+            transition: 0.08s;
+        }
+        .grid-wrap table input:hover,
+        .grid-wrap table select:hover {
+            background: #fff;
+            border-color: #d0d7de;
+        }
+        .grid-wrap table input:focus,
+        .grid-wrap table select:focus {
+            outline: none;
+            border-color: #1a5a7a;
+            background: #fff;
+            box-shadow: 0 0 0 2px rgba(26, 90, 122, 0.15);
+        }
+        .grid-wrap table input[readonly] {
+            background: #f8f9fa;
+            cursor: default;
+        }
+        .grid-wrap table input[readonly]:focus {
+            border-color: transparent;
+            box-shadow: none;
+        }
+        .grid-wrap table td .total-val {
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 3px;
+            display: inline-block;
+            min-width: 44px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .total-val.positive {
+            color: #28a745;
+        }
+        .total-val.negative {
+            color: #dc3545;
+        }
+        .total-val.zero {
+            color: #6c757d;
+        }
+
+        /* ─── ROW ACTIONS ─── */
+        .row-actions {
+            display: flex;
+            gap: 2px;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+        .row-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #6c757d;
+            transition: 0.1s;
+        }
+        .row-actions button:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+        .row-actions .btn-del {
+            color: #dc3545;
+        }
+        .row-actions .btn-del:hover {
+            background: #f8d7da;
+        }
+        .row-actions .btn-hide {
+            color: #6c757d;
+        }
+        .row-actions .btn-drag {
+            cursor: grab;
+            color: #adb5bd;
+        }
+        .row-actions .btn-drag:hover {
+            color: #495057;
+        }
+
+        /* ─── BOTTOM TOOLBAR ─── */
+        .bottom-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 12px;
+            background: #f8f9fa;
+            border-top: 1px solid #d0d7de;
+            flex-shrink: 0;
+            font-size: 12px;
+            color: #5f6368;
+            flex-wrap: wrap;
+        }
+        .bottom-bar .left {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+        .bottom-bar .right {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+        .bottom-bar button {
+            padding: 2px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bottom-bar button:hover {
+            background: #e9ecef;
+        }
+
+        /* ─── REPORTS ─── */
+        .reports-view {
+            display: none;
+            flex: 1;
+            overflow: auto;
+            padding: 12px 16px;
+            background: #f3f5f6;
+        }
+        .reports-view.active {
+            display: block;
+        }
+        .reports-view .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .reports-view .stat-card {
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #d0d7de;
+            text-align: center;
+        }
+        .reports-view .stat-card .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a5a7a;
+        }
+        .reports-view .stat-card .num.danger {
+            color: #dc3545;
+        }
+        .reports-view .stat-card .num.success {
+            color: #28a745;
+        }
+        .reports-view .stat-card .lbl {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .reports-view .report-table {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            overflow: auto;
+            margin-bottom: 12px;
+        }
+        .reports-view .report-table h4 {
+            padding: 8px 14px;
+            background: #f8f9fa;
+            margin: 0;
+            border-bottom: 1px solid #d0d7de;
+            font-size: 14px;
+        }
+        .reports-view .report-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .reports-view .report-table table th {
+            background: #f6f8fa;
+            padding: 4px 10px;
+            text-align: left;
+            border-bottom: 1px solid #d0d7de;
+            font-size: 12px;
+        }
+        .reports-view .report-table table td {
+            padding: 4px 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .reports-view .report-table table tr:hover td {
+            background: #f0f7ff;
+        }
+
+        /* ─── PRINT ─── */
+        @media print {
+            body {
+                background: #fff !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .topbar .btn-group,
+            .topbar .logout-btn,
+            .topbar .role-badge,
+            .topbar .save-ts,
+            .bottom-bar,
+            .row-actions,
+            .sheet-tabs .tab-btn:not(.active) {
+                display: none !important;
+            }
+            .topbar {
+                border-bottom: 1px solid #ccc;
+                background: #fff !important;
+            }
+            .sheet-area {
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            .grid-wrap {
+                border: 1px solid #ccc !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .grid-wrap table th {
+                background: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .grid-wrap table td {
+                border-color: #ddd !important;
+            }
+            .total-val.positive {
+                color: #28a745 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .total-val.negative {
+                color: #dc3545 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .total-row td {
+                background: #f1f3f4 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .mismatch-row td {
+                background: #fff5f5 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .grid-wrap table {
+                font-size: 10px !important;
+                min-width: auto !important;
+                width: 100% !important;
+            }
+            .grid-wrap table td {
+                padding: 2px 4px !important;
+            }
+            .grid-wrap table input,
+            .grid-wrap table select {
+                border: 1px solid #ccc !important;
+                background: #fff !important;
+            }
+            .reports-view {
+                display: block !important;
+                padding: 0 !important;
+            }
+            .reports-view .stats {
+                display: none !important;
+            }
+            .sheet-tabs .tab-btn.active {
+                border-bottom-color: #000 !important;
+                background: #fff !important;
+            }
+            .app {
+                height: auto !important;
+                display: block !important;
+            }
+            .sheet-area .sheet-content:not(.active) {
+                display: none !important;
+            }
+            .sheet-area .sheet-content.active {
+                display: block !important;
+            }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 640px) {
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+            .topbar .btn-group {
+                margin-left: 0;
+                justify-content: center;
+            }
+            .sheet-tabs .tab-btn {
+                padding: 4px 12px;
+                font-size: 12px;
+            }
+            .grid-wrap table {
+                font-size: 12px;
+                min-width: 500px;
+            }
+            .login-users {
+                gap: 16px;
+            }
+            .login-user {
+                padding: 10px 16px;
+                min-width: 70px;
+            }
+        }
+
+        /* ─── DRAG HELPERS ─── */
+        .dragging {
+            opacity: 0.4;
+        }
+        .drag-over {
+            border-top: 2px solid #1a5a7a !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOGIN ===== -->
+    <div class="login-page" id="loginPage">
+        <div class="login-box">
+            <h1>🥛 Crate Tracker</h1>
+            <p class="sub">Daily In / Out Entry</p>
+            <div class="login-users">
+                <div class="login-user" data-user="user1" onclick="selectUser('user1')">
+                    <i class="fas fa-user"></i>
+                    <span class="name">USER</span>
+                    <span class="role">Data Entry</span>
+                </div>
+                <div class="login-user" data-user="admin" onclick="selectUser('admin')">
+                    <i class="fas fa-user-shield"></i>
+                    <span class="name">Admin</span>
+                    <span class="role">Reports</span>
+                </div>
+            </div>
+            <div class="login-form" id="loginForm">
+                <input type="password" id="loginPwd" placeholder="Password" onkeydown="if(event.key==='Enter') doLogin()" />
+                <button onclick="doLogin()">Login</button>
+                <div class="login-error" id="loginErr">Invalid password</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== APP ===== -->
+    <div class="app" id="app">
+
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="brand"><i class="fas fa-table"></i> Crate Tracker</div>
+            <div class="sep"></div>
+            <div class="date-group">
+                <label><i class="far fa-calendar-alt"></i></label>
+                <input type="date" id="globalDate" onchange="onDateChange()" />
+            </div>
+            <span class="status-badge" id="statusBadge">Incomplete</span>
+            <div class="btn-group">
+                <button class="save-btn" onclick="doSave()"><i class="fas fa-save"></i> Save</button>
+                <span class="save-ts" id="saveTs"></span>
+                <button class="complete-btn" id="completeBtn" onclick="doComplete()"><i class="fas fa-lock"></i> Complete</button>
+                <button class="print-btn" onclick="doPrint()"><i class="fas fa-print"></i> Print</button>
+                <span class="role-badge" id="roleBadge">USER</span>
+                <button class="logout-btn" onclick="doLogout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+
+        <!-- SHEET AREA -->
+        <div class="sheet-area">
+
+            <!-- TABS (Excel style) -->
+            <div class="sheet-tabs" id="sheetTabs">
+                <button class="tab-btn active" data-sheet="routes" onclick="switchSheet('routes')">
+                    <i class="fas fa-route"></i> Routes
+                </button>
+                <button class="tab-btn" data-sheet="customers" onclick="switchSheet('customers')">
+                    <i class="fas fa-users"></i> Customers
+                </button>
+                <button class="tab-btn" data-sheet="reports" onclick="switchSheet('reports')">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </button>
+            </div>
+
+            <!-- ROUTES SHEET -->
+            <div class="grid-wrap sheet-content" id="routesSheet">
+                <table id="routeTable">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th style="min-width:130px;">Route Name</th>
+                            <th style="min-width:130px;">Salesman</th>
+                            <th style="width:75px;">Opening</th>
+                            <th style="width:75px;">Crate In</th>
+                            <th style="width:75px;">Crate Out</th>
+                            <th style="width:75px;">Total</th>
+                            <th style="width:80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="routeBody"></tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="6" style="text-align:right;">TOTAL</td>
+                            <td id="routeTotal" style="font-weight:700;">0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- CUSTOMERS SHEET -->
+            <div class="grid-wrap sheet-content" id="customersSheet" style="display:none;">
+                <div style="display:flex; gap:8px; padding:4px 8px; background:#f8f9fa; border-bottom:1px solid #d0d7de; align-items:center; flex-wrap:wrap;">
+                    <span style="font-weight:600; font-size:13px;">Route:</span>
+                    <select id="customerRouteSelect" onchange="switchCustomerRoute()" style="padding:2px 8px; border:1px solid #d0d7de; border-radius:4px; font-size:13px;"></select>
+                    <span style="font-size:13px; color:#6c757d; margin-left:8px;">Salesman: <span id="custSalesmanDisplay">-</span></span>
+                </div>
+                <table id="customerTable">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th style="min-width:130px;">Customer Name</th>
+                            <th style="width:75px;">Opening</th>
+                            <th style="width:75px;">Crate In</th>
+                            <th style="width:75px;">Crate Out</th>
+                            <th style="width:75px;">Total</th>
+                            <th style="width:80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerBody"></tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="5" style="text-align:right;">TOTAL</td>
+                            <td id="customerTotal" style="font-weight:700;">0</td>
+                            <td></td>
+                        </tr>
+                        <tr class="mismatch-row" id="mismatchRow">
+                            <td colspan="4" style="text-align:right;font-weight:600;">TOTAL FROM ROUTE</td>
+                            <td id="mismatchRouteTotal" style="font-weight:700;">0</td>
+                            <td id="mismatchValue" style="font-weight:700;">0</td>
+                            <td><span id="mismatchWarning" style="font-size:11px;color:#ffc107;"></span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- REPORTS SHEET -->
+            <div class="reports-view" id="reportsSheet">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+                    <label>From: <input type="date" id="reportFrom" onchange="genReports()" /></label>
+                    <label>To: <input type="date" id="reportTo" onchange="genReports()" /></label>
+                    <button onclick="genReports()" style="padding:3px 14px; border:1px solid #d0d7de; border-radius:4px; background:#fff; cursor:pointer;"><i class="fas fa-sync"></i> Refresh</button>
+                    <button onclick="exportCSV()" style="padding:3px 14px; border:1px solid #d0d7de; border-radius:4px; background:#fff; cursor:pointer;"><i class="fas fa-file-export"></i> Export CSV</button>
+                </div>
+                <div class="stats" id="reportStats">
+                    <div class="stat-card"><div class="num" id="rRoutes">0</div><div class="lbl">Routes</div></div>
+                    <div class="stat-card"><div class="num" id="rCustomers">0</div><div class="lbl">Customers</div></div>
+                    <div class="stat-card"><div class="num danger" id="rShortage">0</div><div class="lbl">Total Shortage</div></div>
+                    <div class="stat-card"><div class="num success" id="rExcess">0</div><div class="lbl">Total Excess</div></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="report-table"><h4><i class="fas fa-exclamation-triangle" style="color:#dc3545;"></i> High Shortage Routes</h4><div id="reportRoutes"></div></div>
+                    <div class="report-table"><h4><i class="fas fa-user-tie" style="color:#ffc107;"></i> High Shortage Salesmen</h4><div id="reportSalesmen"></div></div>
+                </div>
+                <div class="report-table" style="margin-top:12px;"><h4><i class="fas fa-user" style="color:#1a5a7a;"></i> High Shortage Customers</h4><div id="reportCustomers"></div></div>
+            </div>
+        </div>
+
+        <!-- BOTTOM BAR -->
+        <div class="bottom-bar">
+            <div class="left">
+                <span id="statusBarInfo">Ready</span>
+            </div>
+            <div class="right">
+                <span id="statusBarRows">Rows: 0</span>
+                <button onclick="addRoute()"><i class="fas fa-plus"></i> Add Route</button>
+                <button onclick="addCustomer()"><i class="fas fa-plus"></i> Add Customer</button>
+                <button onclick="toggleReorder()"><i class="fas fa-arrows-alt"></i> Reorder</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ───────────────────────────────────────────────────────────────
+        // 1. DATA LAYER
+        // ───────────────────────────────────────────────────────────────
+        const DB = {
+            get(k, d) { try { const v = localStorage.getItem('ct_' + k); return v ? JSON.parse(v) : d; } catch (
+                e) { return d; } },
+            set(k, v) { localStorage.setItem('ct_' + k, JSON.stringify(v)); },
+
+            getRoutes() { return this.get('routes', []); },
+            setRoutes(r) { this.set('routes', r); },
+
+            getSalesmen() { return this.get('salesmen', ['Rahul', 'Priya', 'Amit', 'Suresh']); },
+            setSalesmen(s) { this.set('salesmen', s); },
+
+            getCustomers() { return this.get('customers', []); },
+            setCustomers(c) { this.set('customers', c); },
+
+            getRouteData() { return this.get('routeData', {}); },
+            setRouteData(d) { this.set('routeData', d); },
+
+            getCustomerData() { return this.get('customerData', {}); },
+            setCustomerData(d) { this.set('customerData', d); },
+
+            getComplete() { return this.get('complete', {}); },
+            setComplete(c) { this.set('complete', c); },
+
+            getHiddenRoutes() { return this.get('hiddenRoutes', []); },
+            setHiddenRoutes(h) { this.set('hiddenRoutes', h); },
+
+            getHiddenCustomers(rid) { const h = this.get('hiddenCustomers', {}); return h[rid] || []; },
+            setHiddenCustomers(rid, list) { const h = this.get('hiddenCustomers', {}); h[rid] = list;
+                this.set('hiddenCustomers', h); },
+
+            getRouteOrder() { return this.get('routeOrder', []); },
+            setRouteOrder(o) { this.set('routeOrder', o); },
+
+            getCustomerOrder(rid) { const o = this.get('customerOrder', {}); return o[rid] || []; },
+            setCustomerOrder(rid, order) { const o = this.get('customerOrder', {}); o[rid] = order;
+                this.set('customerOrder', o); },
+
+            getPwd(role) { return this.get('pwd_' + role, role === 'admin' ? 'admin123' : 'user123'); },
+            setPwd(role, pwd) { this.set('pwd_' + role, pwd); }
+        };
+
+        // ───────────────────────────────────────────────────────────────
+        // 2. STATE
+        // ───────────────────────────────────────────────────────────────
+        let currentUser = null;
+        let currentDate = new Date().toISOString().split('T')[0];
+        let currentSheet = 'routes';
+        let selectedCustomerRoute = null;
+        let isReordering = false;
+
+        // ───────────────────────────────────────────────────────────────
+        // 3. LOGIN
+        // ───────────────────────────────────────────────────────────────
+        let selectedUser = null;
+
+        function selectUser(user) {
+            selectedUser = user;
+            document.querySelectorAll('.login-user').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.login-user[data-user="${user}"]`).classList.add('active');
+            document.getElementById('loginForm').classList.add('show');
+            document.getElementById('loginPwd').value = '';
+            document.getElementById('loginErr').style.display = 'none';
+            document.getElementById('loginPwd').focus();
+        }
+
+        function doLogin() {
+            const pwd = document.getElementById('loginPwd').value;
+            if (!selectedUser) {
+                document.getElementById('loginErr').textContent = 'Select a user.';
+                document.getElementById('loginErr').style.display = 'block';
+                return;
+            }
+            const correct = DB.getPwd(selectedUser);
+            if (pwd === correct) {
+                currentUser = selectedUser;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('app').classList.add('active');
+                document.getElementById('roleBadge').textContent = selectedUser.toUpperCase();
+                document.getElementById('globalDate').value = currentDate;
+                // Report dates: month start to today
+                const d = new Date();
+                d.setDate(1);
+                document.getElementById('reportFrom').value = d.toISOString().split('T')[0];
+                document.getElementById('reportTo').value = currentDate;
+                initApp();
+            } else {
+                document.getElementById('loginErr').textContent = 'Wrong password.';
+                document.getElementById('loginErr').style.display = 'block';
+                document.getElementById('loginPwd').value = '';
+                document.getElementById('loginPwd').focus();
+            }
+        }
+
+        function doLogout() {
+            currentUser = null;
+            document.getElementById('app').classList.remove('active');
+            document.getElementById('loginPage').style.display = 'flex';
+            document.querySelectorAll('.login-user').forEach(el => el.classList.remove('active'));
+            document.getElementById('loginForm').classList.remove('show');
+            document.getElementById('loginPwd').value = '';
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 4. INIT
+        // ───────────────────────────────────────────────────────────────
+        function initApp() {
+            let routes = DB.getRoutes();
+            if (routes.length === 0) {
+                for (let i = 1; i <= 14; i++) routes.push({ id: 'r' + i, name: 'Route ' + i });
+                DB.setRoutes(routes);
+            }
+            if (DB.getRouteOrder().length === 0) {
+                DB.setRouteOrder(routes.map(r => r.id));
+            }
+
+            let customers = DB.getCustomers();
+            routes.forEach(r => {
+                const existing = customers.filter(c => c.routeId === r.id);
+                if (existing.length < 10) {
+                    for (let i = existing.length + 1; i <= 10; i++) {
+                        customers.push({ id: 'c_' + r.id + '_' + i, routeId: r.id, name: 'Customer ' + i });
+                    }
+                }
+            });
+            DB.setCustomers(customers);
+
+            if (routes.length > 0) selectedCustomerRoute = routes[0].id;
+
+            renderRoutes();
+            renderCustomers();
+            updateUI();
+            updateSaveTs();
+            genReports();
+            updateStatusBar();
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 5. DATE & COMPLETE
+        // ───────────────────────────────────────────────────────────────
+        function onDateChange() {
+            currentDate = document.getElementById('globalDate').value;
+            renderRoutes();
+            renderCustomers();
+            updateUI();
+            updateStatusBar();
+        }
+
+        function getComplete() {
+            const c = DB.getComplete();
+            if (!c[currentDate]) c[currentDate] = { route: false, customer: false };
+            return c[currentDate];
+        }
+
+        function isRouteComplete() { return getComplete().route; }
+        function isCustomerComplete() { return getComplete().customer; }
+        function isDayComplete() { return isRouteComplete() && isCustomerComplete(); }
+
+        function updateUI() {
+            const rc = isRouteComplete(),
+                cc = isCustomerComplete();
+            const badge = document.getElementById('statusBadge');
+            if (rc && cc) { badge.textContent = '✅ Complete';
+                badge.className = 'status-badge complete'; } else if (rc || cc) { badge.textContent = '⏳ Partial';
+                badge.className = 'status-badge partial'; } else { badge.textContent = '⏳ Incomplete';
+                badge.className = 'status-badge'; }
+            const btn = document.getElementById('completeBtn');
+            if (rc && cc) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Completed';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-lock"></i> Complete';
+            }
+        }
+
+        function doComplete() {
+            if (isDayComplete()) return;
+            if (!confirm('Complete this day? This locks both sheets.')) return;
+            const c = DB.getComplete();
+            if (!c[currentDate]) c[currentDate] = { route: false, customer: false };
+            c[currentDate].route = true;
+            c[currentDate].customer = true;
+            DB.setComplete(c);
+            renderRoutes();
+            renderCustomers();
+            updateUI();
+            showToast('Day completed!', 'success');
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 6. SAVE
+        // ───────────────────────────────────────────────────────────────
+        function doSave() {
+            updateSaveTs();
+            showToast('Saved at ' + new Date().toLocaleTimeString(), 'info');
+        }
+
+        function updateSaveTs() {
+            document.getElementById('saveTs').textContent = '💾 ' + new Date().toLocaleTimeString();
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 7. ROUTES
+        // ───────────────────────────────────────────────────────────────
+        function getVisibleRoutes() {
+            const routes = DB.getRoutes();
+            const hidden = DB.getHiddenRoutes();
+            const order = DB.getRouteOrder();
+            const ordered = order.filter(id => routes.some(r => r.id === id) && !hidden.includes(id));
+            const unordered = routes.filter(r => !ordered.includes(r.id) && !hidden.includes(r.id));
+            const result = [...ordered, ...unordered.map(r => r.id)];
+            routes.forEach(r => { if (!result.includes(r.id) && !hidden.includes(r.id)) result.push(r.id); });
+            return result;
+        }
+
+        function getRouteData(rid) {
+            const all = DB.getRouteData();
+            if (!all[currentDate]) all[currentDate] = {};
+            if (!all[currentDate][rid]) all[currentDate][rid] = { opening: 0, crateIn: 0, crateOut: 0, salesman: '' };
+            return all[currentDate][rid];
+        }
+
+        function getPrevRouteTotal(rid) {
+            const all = DB.getRouteData();
+            const dates = Object.keys(all).filter(d => d < currentDate).sort().reverse();
+            for (const d of dates) {
+                const c = DB.getComplete();
+                if (c[d] && c[d].route) {
+                    const day = all[d];
+                    if (day[rid]) {
+                        const dd = day[rid];
+                        return (dd.opening || 0) + (dd.crateIn || 0) - (dd.crateOut || 0);
+                    }
+                }
+            }
+            return null;
+        }
+
+        function renderRoutes() {
+            const tbody = document.getElementById('routeBody');
+            const routes = getVisibleRoutes();
+            const rc = isRouteComplete();
+            const canEdit = (currentUser === 'admin') || !rc;
+            let html = '',
+                total = 0;
+
+            routes.forEach((rid, idx) => {
+                const route = DB.getRoutes().find(r => r.id === rid);
+                if (!route) return;
+                const data = getRouteData(rid);
+                if (data.opening === 0 && data._openingAuto !== false) {
+                    const prev = getPrevRouteTotal(rid);
+                    if (prev !== null && prev !== 0) {
+                        data.opening = prev;
+                        data._openingAuto = true;
+                        const all = DB.getRouteData();
+                        all[currentDate][rid] = data;
+                        DB.setRouteData(all);
+                    }
+                }
+                const opening = data.opening || 0;
+                const crateIn = data.crateIn || 0;
+                const crateOut = data.crateOut || 0;
+                const totalVal = opening + crateIn - crateOut;
+                total += totalVal;
+                const hidden = DB.getHiddenRoutes().includes(rid);
+                const cls = totalVal > 0 ? 'positive' : (totalVal < 0 ? 'negative' : 'zero');
+                const display = totalVal > 0 ? '+' + totalVal : (totalVal < 0 ? '-' + Math.abs(totalVal) : '0');
+
+                html += `<tr data-rid="${rid}" class="${hidden ? 'row-hidden' : ''}">`;
+                html += `<td class="row-num">${idx+1}</td>`;
+                html +=
+                    `<td><input type="text" value="${route.name}" onchange="renameRoute('${rid}', this.value)" ${canEdit ? '' : 'disabled'} style="font-weight:500;"></td>`;
+                html +=
+                    `<td><select onchange="updateRoute('${rid}','salesman',this.value)" ${canEdit ? '' : 'disabled'}>${salesmanOptions(data.salesman||'')}</select></td>`;
+                html +=
+                    `<td><input type="number" value="${opening}" onchange="updateRoute('${rid}','opening',this.value)" ${canEdit ? '' : 'disabled'} ${currentUser === 'admin' ? '' : 'readonly'} style="${currentUser === 'admin' ? '' : 'background:#f8f9fa;'}"></td>`;
+                html +=
+                    `<td><input type="number" value="${crateIn}" onchange="updateRoute('${rid}','crateIn',this.value)" ${canEdit ? '' : 'disabled'} onkeydown="cellKeydown(event)"></td>`;
+                html +=
+                    `<td><input type="number" value="${crateOut}" onchange="updateRoute('${rid}','crateOut',this.value)" ${canEdit ? '' : 'disabled'} onkeydown="cellKeydown(event)"></td>`;
+                html += `<td><span class="total-val ${cls}">${display}</span></td>`;
+                html += `<td><div class="row-actions">${isReordering ? `<button class="btn-drag" data-rid="${rid}" title="Drag"><i class="fas fa-grip-lines"></i></button>` : ''}<button class="btn-hide" onclick="toggleHideRoute('${rid}')" title="${hidden ? 'Show' : 'Hide'}"><i class="fas ${hidden ? 'fa-eye' : 'fa-eye-slash'}"></i></button>${canEdit ? `<button class="btn-del" onclick="delRoute('${rid}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}</div></td>`;
+                html += `</tr>`;
+            });
+
+            tbody.innerHTML = html;
+            const totalEl = document.getElementById('routeTotal');
+            totalEl.textContent = total > 0 ? '+' + total : (total < 0 ? '-' + Math.abs(total) : '0');
+            totalEl.style.color = total > 0 ? '#28a745' : (total < 0 ? '#dc3545' : '#6c757d');
+            window._routeTotal = total;
+            updateMismatch();
+
+            if (isReordering) enableDrag('route');
+            updateStatusBar();
+        }
+
+        function salesmanOptions(selected) {
+            const list = DB.getSalesmen();
+            let html = `<option value="">Select</option>`;
+            list.forEach(s => { html += `<option value="${s}" ${s===selected?'selected':''}>${s}</option>`; });
+            html += `<option value="__add__" style="color:#1a5a7a;font-weight:600;">+ Add</option>`;
+            return html;
+        }
+
+        // Add salesman
+        document.addEventListener('change', function(e) {
+            if (e.target.tagName === 'SELECT' && e.target.value === '__add__') {
+                const name = prompt('New salesman name:');
+                if (name && name.trim()) {
+                    const t = name.trim();
+                    const list = DB.getSalesmen();
+                    if (list.includes(t)) { alert('Already exists.'); } else { list.push(t);
+                        DB.setSalesmen(list);
+                        renderRoutes();
+                        showToast('Salesman added.', 'success'); }
+                }
+                e.target.value = '';
+                renderRoutes();
+            }
+        });
+
+        function updateRoute(rid, field, val) {
+            const all = DB.getRouteData();
+            if (!all[currentDate]) all[currentDate] = {};
+            if (!all[currentDate][rid]) all[currentDate][rid] = { opening: 0, crateIn: 0, crateOut: 0, salesman: '' };
+            if (field === 'opening' || field === 'crateIn' || field === 'crateOut') {
+                all[currentDate][rid][field] = parseFloat(val) || 0;
+                if (field === 'opening') all[currentDate][rid]._openingAuto = false;
+            } else {
+                all[currentDate][rid][field] = val;
+            }
+            DB.setRouteData(all);
+            renderRoutes();
+            // Also update customer sheet if open
+            if (currentSheet === 'customers') renderCustomers();
+        }
+
+        function renameRoute(rid, name) {
+            if (!name || !name.trim()) { showToast('Name required.', 'error');
+                renderRoutes(); return; }
+            const routes = DB.getRoutes();
+            const route = routes.find(r => r.id === rid);
+            if (route) {
+                const dup = routes.find(r => r.name.toLowerCase() === name.trim().toLowerCase() && r.id !== rid);
+                if (dup) { alert('Duplicate route name.'); renderRoutes(); return; }
+                route.name = name.trim();
+                DB.setRoutes(routes);
+                renderRoutes();
+                renderCustomers();
+                showToast('Route renamed.', 'success');
+            }
+        }
+
+        function addRoute() {
+            const name = prompt('New route name:');
+            if (name && name.trim()) {
+                const routes = DB.getRoutes();
+                if (routes.find(r => r.name.toLowerCase() === name.trim().toLowerCase())) { alert('Duplicate.'); return; }
+                const id = 'r' + Date.now();
+                routes.push({ id, name: name.trim() });
+                DB.setRoutes(routes);
+                const order = DB.getRouteOrder();
+                order.push(id);
+                DB.setRouteOrder(order);
+                renderRoutes();
+                renderCustomers();
+                showToast('Route added.', 'success');
+            }
+        }
+
+        function delRoute(rid) {
+            if (!confirm('Delete route and all customer data?')) return;
+            let routes = DB.getRoutes();
+            routes = routes.filter(r => r.id !== rid);
+            DB.setRoutes(routes);
+            let order = DB.getRouteOrder();
+            order = order.filter(id => id !== rid);
+            DB.setRouteOrder(order);
+            let hidden = DB.getHiddenRoutes();
+            hidden = hidden.filter(id => id !== rid);
+            DB.setHiddenRoutes(hidden);
+            let customers = DB.getCustomers();
+            customers = customers.filter(c => c.routeId !== rid);
+            DB.setCustomers(customers);
+            const co = DB.getCustomerOrder();
+            delete co[rid];
+            DB.setCustomerOrder(co);
+            renderRoutes();
+            renderCustomers();
+            showToast('Route deleted.', 'info');
+        }
+
+        function toggleHideRoute(rid) {
+            let hidden = DB.getHiddenRoutes();
+            const idx = hidden.indexOf(rid);
+            if (idx > -1) hidden.splice(idx, 1);
+            else hidden.push(rid);
+            DB.setHiddenRoutes(hidden);
+            renderRoutes();
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 8. CUSTOMERS
+        // ───────────────────────────────────────────────────────────────
+        function renderCustomers() {
+            const routes = DB.getRoutes();
+            const select = document.getElementById('customerRouteSelect');
+            // Populate dropdown
+            let optHtml = '';
+            routes.forEach(r => {
+                optHtml += `<option value="${r.id}" ${r.id === selectedCustomerRoute ? 'selected' : ''}>${r.name}</option>`;
+            });
+            select.innerHTML = optHtml;
+
+            // Salesman display
+            const rd = DB.getRouteData();
+            const salesman = (rd[currentDate] && rd[currentDate][selectedCustomerRoute]) ?
+                rd[currentDate][selectedCustomerRoute].salesman || '-' : '-';
+            document.getElementById('custSalesmanDisplay').textContent = salesman;
+
+            if (!selectedCustomerRoute) {
+                document.getElementById('customerBody').innerHTML =
+                    '<tr><td colspan="7" style="text-align:center;color:#6c757d;">No route selected</td></tr>';
+                return;
+            }
+
+            const customers = DB.getCustomers().filter(c => c.routeId === selectedCustomerRoute);
+            const hidden = DB.getHiddenCustomers(selectedCustomerRoute) || [];
+            const order = DB.getCustomerOrder(selectedCustomerRoute) || [];
+            const ordered = order.filter(id => customers.some(c => c.id === id) && !hidden.includes(id));
+            const unordered = customers.filter(c => !ordered.includes(c.id) && !hidden.includes(c.id));
+            const sorted = [...ordered, ...unordered.map(c => c.id)];
+
+            const cc = isCustomerComplete();
+            const canEdit = (currentUser === 'admin') || !cc;
+            const all = DB.getCustomerData();
+            if (!all[currentDate]) all[currentDate] = {};
+            if (!all[currentDate][selectedCustomerRoute]) all[currentDate][selectedCustomerRoute] = {};
+
+            let html = '',
+                total = 0;
+            sorted.forEach((cid, idx) => {
+                const customer = customers.find(c => c.id === cid);
+                if (!customer) return;
+                if (!all[currentDate][selectedCustomerRoute][cid]) {
+                    all[currentDate][selectedCustomerRoute][cid] = { opening: 0, crateIn: 0, crateOut: 0 };
+                }
+                const data = all[currentDate][selectedCustomerRoute][cid];
+                // Auto-fill opening
+                if (data.opening === 0 && data._openingAuto !== false) {
+                    const prev = getPrevCustomerTotal(selectedCustomerRoute, cid);
+                    if (prev !== null && prev !== 0) {
+                        data.opening = prev;
+                        data._openingAuto = true;
+                        all[currentDate][selectedCustomerRoute][cid] = data;
+                        DB.setCustomerData(all);
+                    }
+                }
+                const opening = data.opening || 0;
+                const crateIn = data.crateIn || 0;
+                const crateOut = data.crateOut || 0;
+                const totalVal = opening + crateIn - crateOut;
+                total += totalVal;
+                const isHidden = hidden.includes(cid);
+                const cls = totalVal > 0 ? 'positive' : (totalVal < 0 ? 'negative' : 'zero');
+                const display = totalVal > 0 ? '+' + totalVal : (totalVal < 0 ? '-' + Math.abs(totalVal) : '0');
+
+                html += `<tr data-cid="${cid}" class="${isHidden ? 'row-hidden' : ''}">`;
+                html += `<td class="row-num">${idx+1}</td>`;
+                html +=
+                    `<td><input type="text" value="${customer.name}" onchange="renameCustomer('${cid}', this.value)" ${canEdit ? '' : 'disabled'} style="font-weight:500;"></td>`;
+                html +=
+                    `<td><input type="number" value="${opening}" onchange="updateCustomer('${cid}','opening',this.value)" ${canEdit ? '' : 'disabled'} ${currentUser === 'admin' ? '' : 'readonly'} style="${currentUser === 'admin' ? '' : 'background:#f8f9fa;'}"></td>`;
+                html +=
+                    `<td><input type="number" value="${crateIn}" onchange="updateCustomer('${cid}','crateIn',this.value)" ${canEdit ? '' : 'disabled'} onkeydown="cellKeydown(event)"></td>`;
+                html +=
+                    `<td><input type="number" value="${crateOut}" onchange="updateCustomer('${cid}','crateOut',this.value)" ${canEdit ? '' : 'disabled'} onkeydown="cellKeydown(event)"></td>`;
+                html += `<td><span class="total-val ${cls}">${display}</span></td>`;
+                html += `<td><div class="row-actions">${isReordering ? `<button class="btn-drag" data-cid="${cid}" title="Drag"><i class="fas fa-grip-lines"></i></button>` : ''}<button class="btn-hide" onclick="toggleHideCustomer('${cid}')" title="${isHidden ? 'Show' : 'Hide'}"><i class="fas ${isHidden ? 'fa-eye' : 'fa-eye-slash'}"></i></button>${canEdit ? `<button class="btn-del" onclick="delCustomer('${cid}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}</div></td>`;
+                html += `</tr>`;
+            });
+
+            DB.setCustomerData(all);
+            if (sorted.length === 0) html =
+                '<tr><td colspan="7" style="text-align:center;color:#6c757d;padding:16px;">No customers. Add one.</td></tr>';
+            document.getElementById('customerBody').innerHTML = html;
+
+            const totalEl = document.getElementById('customerTotal');
+            totalEl.textContent = total > 0 ? '+' + total : (total < 0 ? '-' + Math.abs(total) : '0');
+            totalEl.style.color = total > 0 ? '#28a745' : (total < 0 ? '#dc3545' : '#6c757d');
+            window._customerTotal = total;
+            updateMismatch();
+
+            if (isReordering) enableDrag('customer');
+            updateStatusBar();
+        }
+
+        function getPrevCustomerTotal(rid, cid) {
+            const all = DB.getCustomerData();
+            const dates = Object.keys(all).filter(d => d < currentDate).sort().reverse();
+            for (const d of dates) {
+                const c = DB.getComplete();
+                if (c[d] && c[d].customer) {
+                    const day = all[d];
+                    if (day[rid] && day[rid][cid]) {
+                        const dd = day[rid][cid];
+                        return (dd.opening || 0) + (dd.crateIn || 0) - (dd.crateOut || 0);
+                    }
+                }
+            }
+            return null;
+        }
+
+        function updateCustomer(cid, field, val) {
+            const all = DB.getCustomerData();
+            if (!all[currentDate]) all[currentDate] = {};
+            if (!all[currentDate][selectedCustomerRoute]) all[currentDate][selectedCustomerRoute] = {};
+            if (!all[currentDate][selectedCustomerRoute][cid]) {
+                all[currentDate][selectedCustomerRoute][cid] = { opening: 0, crateIn: 0, crateOut: 0 };
+            }
+            if (field === 'opening' || field === 'crateIn' || field === 'crateOut') {
+                all[currentDate][selectedCustomerRoute][cid][field] = parseFloat(val) || 0;
+                if (field === 'opening') all[currentDate][selectedCustomerRoute][cid]._openingAuto = false;
+            }
+            DB.setCustomerData(all);
+            renderCustomers();
+        }
+
+        function renameCustomer(cid, name) {
+            if (!name || !name.trim()) { showToast('Name required.', 'error');
+                renderCustomers(); return; }
+            const customers = DB.getCustomers();
+            const customer = customers.find(c => c.id === cid);
+            if (customer) {
+                const dup = customers.find(c => c.name.toLowerCase() === name.trim().toLowerCase() &&
+                    c.routeId === customer.routeId && c.id !== cid);
+                if (dup) { alert('Duplicate customer in this route.'); renderCustomers(); return; }
+                customer.name = name.trim();
+                DB.setCustomers(customers);
+                renderCustomers();
+                showToast('Customer renamed.', 'success');
+            }
+        }
+
+        function addCustomer() {
+            if (!selectedCustomerRoute) { alert('Select a route first.'); return; }
+            const route = DB.getRoutes().find(r => r.id === selectedCustomerRoute);
+            const name = prompt('Customer name for ' + (route ? route.name : 'this route') + ':');
+            if (name && name.trim()) {
+                const customers = DB.getCustomers();
+                if (customers.find(c => c.name.toLowerCase() === name.trim().toLowerCase() && c.routeId ===
+                        selectedCustomerRoute)) {
+                    alert('Duplicate customer in this route.');
+                    return;
+                }
+                const id = 'c' + Date.now();
+                customers.push({ id, routeId: selectedCustomerRoute, name: name.trim() });
+                DB.setCustomers(customers);
+                const order = DB.getCustomerOrder(selectedCustomerRoute) || [];
+                order.push(id);
+                DB.setCustomerOrder(selectedCustomerRoute, order);
+                renderCustomers();
+                showToast('Customer added.', 'success');
+            }
+        }
+
+        function delCustomer(cid) {
+            if (!confirm('Delete this customer?')) return;
+            let customers = DB.getCustomers();
+            customers = customers.filter(c => c.id !== cid);
+            DB.setCustomers(customers);
+            const order = DB.getCustomerOrder(selectedCustomerRoute) || [];
+            DB.setCustomerOrder(selectedCustomerRoute, order.filter(id => id !== cid));
+            const hidden = DB.getHiddenCustomers(selectedCustomerRoute) || [];
+            DB.setHiddenCustomers(selectedCustomerRoute, hidden.filter(id => id !== cid));
+            renderCustomers();
+            showToast('Customer deleted.', 'info');
+        }
+
+        function toggleHideCustomer(cid) {
+            if (!selectedCustomerRoute) return;
+            let hidden = DB.getHiddenCustomers(selectedCustomerRoute) || [];
+            const idx = hidden.indexOf(cid);
+            if (idx > -1) hidden.splice(idx, 1);
+            else hidden.push(cid);
+            DB.setHiddenCustomers(selectedCustomerRoute, hidden);
+            renderCustomers();
+        }
+
+        function switchCustomerRoute() {
+            selectedCustomerRoute = document.getElementById('customerRouteSelect').value;
+            renderCustomers();
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 9. MISMATCH
+        // ───────────────────────────────────────────────────────────────
+        function updateMismatch() {
+            const rt = window._routeTotal || 0;
+            const ct = window._customerTotal || 0;
+            const mismatch = rt - ct;
+
+            const rtEl = document.getElementById('mismatchRouteTotal');
+            const mvEl = document.getElementById('mismatchValue');
+            const mwEl = document.getElementById('mismatchWarning');
+
+            if (rtEl) rtEl.textContent = rt > 0 ? '+' + rt : (rt < 0 ? '-' + Math.abs(rt) : '0');
+            if (mvEl) {
+                mvEl.textContent = mismatch > 0 ? '+' + mismatch : (mismatch < 0 ? '-' + Math.abs(mismatch) : '0');
+                mvEl.style.color = mismatch !== 0 ? '#dc3545' : '#28a745';
+                if (mismatch !== 0) mvEl.textContent += ' ⚠️';
+            }
+            if (mwEl) {
+                const rc = isRouteComplete(),
+                    cc = isCustomerComplete();
+                if (!rc || !cc) {
+                    mwEl.textContent = '⚠️ Not fully complete';
+                    mwEl.style.display = 'inline';
+                } else if (mismatch !== 0) {
+                    mwEl.textContent = '⚠️ Mismatch!';
+                    mwEl.style.display = 'inline';
+                } else {
+                    mwEl.textContent = '✅ Match';
+                    mwEl.style.color = '#28a745';
+                    mwEl.style.display = 'inline';
+                }
+            }
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 10. SHEET SWITCHING
+        // ───────────────────────────────────────────────────────────────
+        function switchSheet(sheet) {
+            currentSheet = sheet;
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-sheet="${sheet}"]`).classList.add('active');
+            document.querySelectorAll('.sheet-content, .reports-view').forEach(el => {
+                if (el.id === sheet + 'Sheet') {
+                    el.style.display = 'block';
+                    if (el.classList.contains('reports-view')) el.classList.add('active');
+                } else {
+                    el.style.display = 'none';
+                    if (el.classList.contains('reports-view')) el.classList.remove('active');
+                }
+            });
+            if (sheet === 'customers') renderCustomers();
+            if (sheet === 'reports') genReports();
+            if (isReordering) { isReordering = false;
+                renderRoutes();
+                renderCustomers(); }
+            updateStatusBar();
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 11. REORDER
+        // ───────────────────────────────────────────────────────────────
+        function toggleReorder() {
+            isReordering = !isReordering;
+            renderRoutes();
+            renderCustomers();
+            showToast(isReordering ? 'Drag to reorder rows' : 'Reorder off', 'info');
+        }
+
+        function enableDrag(type) {
+            const rows = document.querySelectorAll(type === 'route' ? '#routeBody tr' : '#customerBody tr');
+            rows.forEach(row => {
+                const dragBtn = row.querySelector('.btn-drag');
+                if (dragBtn) {
+                    row.draggable = true;
+                    row.addEventListener('dragstart', function(e) {
+                        e.dataTransfer.setData('text/plain', this.dataset[type === 'route' ? 'rid' : 'cid']);
+                        this.classList.add('dragging');
+                    });
+                    row.addEventListener('dragend', function(e) { this.classList.remove('dragging'); });
+                    row.addEventListener('dragover', function(e) { e.preventDefault();
+                        this.classList.add('drag-over'); });
+                    row.addEventListener('dragleave', function(e) { this.classList.remove('drag-over'); });
+                    row.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('drag-over');
+                        const dragged = e.dataTransfer.getData('text/plain');
+                        const target = this.dataset[type === 'route' ? 'rid' : 'cid'];
+                        if (dragged && target && dragged !== target) {
+                            reorder(type, dragged, target);
+                        }
+                    });
+                }
+            });
+        }
+
+        function reorder(type, dragged, target) {
+            if (type === 'route') {
+                let order = DB.getRouteOrder();
+                const routes = DB.getRoutes();
+                routes.forEach(r => { if (!order.includes(r.id)) order.push(r.id); });
+                const di = order.indexOf(dragged),
+                    ti = order.indexOf(target);
+                if (di > -1 && ti > -1) { order.splice(di, 1);
+                    order.splice(ti, 0, dragged);
+                    DB.setRouteOrder(order);
+                    renderRoutes();
+                    renderCustomers();
+                    showToast('Reordered.', 'success'); }
+            } else {
+                const rid = selectedCustomerRoute;
+                if (!rid) return;
+                let order = DB.getCustomerOrder(rid) || [];
+                const customers = DB.getCustomers().filter(c => c.routeId === rid);
+                customers.forEach(c => { if (!order.includes(c.id)) order.push(c.id); });
+                const di = order.indexOf(dragged),
+                    ti = order.indexOf(target);
+                if (di > -1 && ti > -1) { order.splice(di, 1);
+                    order.splice(ti, 0, dragged);
+                    DB.setCustomerOrder(rid, order);
+                    renderCustomers();
+                    showToast('Reordered.', 'success'); }
+            }
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 12. KEYBOARD (Excel-like)
+        // ───────────────────────────────────────────────────────────────
+        function cellKeydown(e) {
+            const key = e.key;
+            const inputs = e.target.closest('table').querySelectorAll('input:not([readonly]), select');
+            const idx = Array.from(inputs).indexOf(e.target);
+
+            if (key === 'Enter') {
+                e.preventDefault();
+                const next = Math.min(idx + 1, inputs.length - 1);
+                if (next !== idx) { inputs[next].focus();
+                    inputs[next].select(); } else {
+                    const rows = e.target.closest('tbody').querySelectorAll('tr:not(.row-hidden)');
+                    const row = e.target.closest('tr');
+                    const ri = Array.from(rows).indexOf(row);
+                    if (ri < rows.length - 1) {
+                        const nxt = rows[ri + 1].querySelectorAll('input:not([readonly]), select');
+                        if (nxt.length) { nxt[0].focus();
+                            nxt[0].select(); }
+                    }
+                }
+            }
+            if (key === 'ArrowDown') {
+                e.preventDefault();
+                const rows = e.target.closest('tbody').querySelectorAll('tr:not(.row-hidden)');
+                const row = e.target.closest('tr');
+                const ri = Array.from(rows).indexOf(row);
+                if (ri < rows.length - 1) {
+                    const nxt = rows[ri + 1].querySelectorAll('input:not([readonly]), select');
+                    const ci = Array.from(row.querySelectorAll('input:not([readonly]), select')).indexOf(e.target);
+                    if (ci < nxt.length) { nxt[ci].focus();
+                        nxt[ci].select(); }
+                }
+            }
+            if (key === 'ArrowUp') {
+                e.preventDefault();
+                const rows = e.target.closest('tbody').querySelectorAll('tr:not(.row-hidden)');
+                const row = e.target.closest('tr');
+                const ri = Array.from(rows).indexOf(row);
+                if (ri > 0) {
+                    const prv = rows[ri - 1].querySelectorAll('input:not([readonly]), select');
+                    const ci = Array.from(row.querySelectorAll('input:not([readonly]), select')).indexOf(e.target);
+                    if (ci < prv.length) { prv[ci].focus();
+                        prv[ci].select(); }
+                }
+            }
+            if (key === 'ArrowRight') {
+                e.preventDefault();
+                const nxt = inputs[idx + 1];
+                if (nxt) { nxt.focus();
+                    nxt.select(); }
+            }
+            if (key === 'ArrowLeft') {
+                e.preventDefault();
+                const prv = inputs[idx - 1];
+                if (prv) { prv.focus();
+                    prv.select(); }
+            }
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 13. REPORTS
+        // ───────────────────────────────────────────────────────────────
+        function genReports() {
+            const from = document.getElementById('reportFrom').value;
+            const to = document.getElementById('reportTo').value;
+            if (!from || !to) return;
+
+            const rd = DB.getRouteData();
+            const cd = DB.getCustomerData();
+            const routes = DB.getRoutes();
+            const customers = DB.getCustomers();
+
+            let totalRoutes = 0,
+                totalCustomers = 0,
+                totalShortage = 0,
+                totalExcess = 0;
+            const routeSh = {},
+                salesmanSh = {},
+                customerSh = [];
+
+            const dates = getDateRange(from, to);
+
+            dates.forEach(date => {
+                const rData = rd[date] || {};
+                const cData = cd[date] || {};
+
+                Object.keys(rData).forEach(rid => {
+                    const d = rData[rid];
+                    const t = (d.opening || 0) + (d.crateIn || 0) - (d.crateOut || 0);
+                    const route = routes.find(r => r.id === rid);
+                    const rName = route ? route.name : rid;
+                    if (!routeSh[rid]) routeSh[rid] = { name: rName, total: 0, salesman: d.salesman ||
+                        'Unknown' };
+                    routeSh[rid].total += t;
+                    if (d.salesman) {
+                        if (!salesmanSh[d.salesman]) salesmanSh[d.salesman] = 0;
+                        salesmanSh[d.salesman] += t;
+                    }
+                    if (t < 0) totalShortage += Math.abs(t);
+                    if (t > 0) totalExcess += t;
+                    totalRoutes++;
+                });
+
+                Object.keys(cData).forEach(rid => {
+                    const routeCust = cData[rid] || {};
+                    Object.keys(routeCust).forEach(cid => {
+                        const d = routeCust[cid];
+                        const t = (d.opening || 0) + (d.crateIn || 0) - (d.crateOut || 0);
+                        const customer = customers.find(c => c.id === cid);
+                        const cName = customer ? customer.name : cid;
+                        const route = routes.find(r => r.id === rid);
+                        const rName = route ? route.name : rid;
+                        customerSh.push({
+                            name: cName,
+                            route: rName,
+                            total: t,
+                            salesman: rData[rid] ? rData[rid].salesman || 'Unknown' : 'Unknown'
+                        });
+                        if (t < 0) totalShortage += Math.abs(t);
+                        if (t > 0) totalExcess += t;
+                        totalCustomers++;
+                    });
+                });
+            });
+
+            document.getElementById('rRoutes').textContent = totalRoutes;
+            document.getElementById('rCustomers').textContent = totalCustomers;
+            document.getElementById('rShortage').textContent = '-' + totalShortage.toFixed(0);
+            document.getElementById('rExcess').textContent = '+' + totalExcess.toFixed(0);
+
+            // Routes
+            const sortedRoutes = Object.keys(routeSh)
+                .map(id => ({ ...routeSh[id], id }))
+                .filter(r => r.total < 0)
+                .sort((a, b) => a.total - b.total)
+                .slice(0, 10);
+            let html = '';
+            if (sortedRoutes.length === 0) html = '<p style="padding:10px;color:#6c757d;">No shortage</p>';
+            else {
+                html =
+                    '<table><thead><tr><th>#</th><th>Route</th><th>Salesman</th><th>Shortage</th></tr></thead><tbody>';
+                sortedRoutes.forEach((r, i) => {
+                    html +=
+                        `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.salesman}</td><td style="color:#dc3545;font-weight:600;">${r.total.toFixed(0)}</td></tr>`;
+                });
+                html += '</tbody></table>';
+            }
+            document.getElementById('reportRoutes').innerHTML = html;
+
+            // Salesmen
+            const sortedSalesmen = Object.keys(salesmanSh)
+                .map(name => ({ name, total: salesmanSh[name] }))
+                .filter(s => s.total < 0)
+                .sort((a, b) => a.total - b.total)
+                .slice(0, 10);
+            html = '';
+            if (sortedSalesmen.length === 0) html = '<p style="padding:10px;color:#6c757d;">No shortage</p>';
+            else {
+                html = '<table><thead><tr><th>#</th><th>Salesman</th><th>Shortage</th></tr></thead><tbody>';
+                sortedSalesmen.forEach((s, i) => {
+                    html +=
+                        `<tr><td>${i+1}</td><td>${s.name}</td><td style="color:#dc3545;font-weight:600;">${s.total.toFixed(0)}</td></tr>`;
+                });
+                html += '</tbody></table>';
+            }
+            document.getElementById('reportSalesmen').innerHTML = html;
+
+            // Customers
+            const sortedCustomers = customerSh
+                .filter(c => c.total < 0)
+                .sort((a, b) => a.total - b.total)
+                .slice(0, 20);
+            html = '';
+            if (sortedCustomers.length === 0) html = '<p style="padding:10px;color:#6c757d;">No shortage</p>';
+            else {
+                html =
+                    '<table><thead><tr><th>#</th><th>Customer</th><th>Route</th><th>Salesman</th><th>Shortage</th></tr></thead><tbody>';
+                sortedCustomers.forEach((c, i) => {
+                    html +=
+                        `<tr><td>${i+1}</td><td>${c.name}</td><td>${c.route}</td><td>${c.salesman}</td><td style="color:#dc3545;font-weight:600;">${c.total.toFixed(0)}</td></tr>`;
+                });
+                html += '</tbody></table>';
+            }
+            document.getElementById('reportCustomers').innerHTML = html;
+        }
+
+        function getDateRange(from, to) {
+            const dates = [];
+            let d = new Date(from);
+            const end = new Date(to);
+            while (d <= end) {
+                dates.push(d.toISOString().split('T')[0]);
+                d.setDate(d.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function exportCSV() {
+            const from = document.getElementById('reportFrom').value;
+            const to = document.getElementById('reportTo').value;
+            if (!from || !to) { alert('Select date range.'); return; }
+            let csv = 'Date,Route,Salesman,Customer,Opening,Crate In,Crate Out,Total\n';
+            const rd = DB.getRouteData();
+            const cd = DB.getCustomerData();
+            const routes = DB.getRoutes();
+            const customers = DB.getCustomers();
+            const dates = getDateRange(from, to);
+            dates.forEach(date => {
+                const rData = rd[date] || {};
+                const cData = cd[date] || {};
+                Object.keys(rData).forEach(rid => {
+                    const d = rData[rid];
+                    const route = routes.find(r => r.id === rid);
+                    const rName = route ? route.name : rid;
+                    const t = (d.opening || 0) + (d.crateIn || 0) - (d.crateOut || 0);
+                    csv +=
+                        `${date},${rName},${d.salesman||''},,${d.opening||0},${d.crateIn||0},${d.crateOut||0},${t}\n`;
+                    if (cData[rid]) {
+                        Object.keys(cData[rid]).forEach(cid => {
+                            const cd2 = cData[rid][cid];
+                            const customer = customers.find(c => c.id === cid);
+                            const cName = customer ? customer.name : cid;
+                            const ct = (cd2.opening || 0) + (cd2.crateIn || 0) - (cd2.crateOut || 0);
+                            csv +=
+                                `${date},${rName},${d.salesman||''},${cName},${cd2.opening||0},${cd2.crateIn||0},${cd2.crateOut||0},${ct}\n`;
+                        });
+                    }
+                });
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `crate_${from}_to_${to}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('CSV exported.', 'success');
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 14. PRINT
+        // ───────────────────────────────────────────────────────────────
+        function doPrint() {
+            // Make sure current sheet is visible, then print
+            window.print();
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 15. STATUS BAR
+        // ───────────────────────────────────────────────────────────────
+        function updateStatusBar() {
+            let count = 0;
+            if (currentSheet === 'routes') {
+                count = document.querySelectorAll('#routeBody tr:not(.row-hidden)').length;
+            } else if (currentSheet === 'customers') {
+                count = document.querySelectorAll('#customerBody tr:not(.row-hidden)').length;
+            }
+            document.getElementById('statusBarRows').textContent = 'Rows: ' + count;
+            const status = isDayComplete() ? '✅ Complete' : (isRouteComplete() || isCustomerComplete() ? '⏳ Partial' :
+                '⏳ Incomplete');
+            document.getElementById('statusBarInfo').textContent = 'Date: ' + currentDate + ' | Status: ' + status;
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 16. TOAST
+        // ───────────────────────────────────────────────────────────────
+        function showToast(msg, type) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            const bg = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#1a5a7a';
+            Object.assign(toast.style, {
+                position: 'fixed',
+                bottom: '70px',
+                right: '20px',
+                background: bg,
+                color: '#fff',
+                padding: '8px 18px',
+                borderRadius: '6px',
+                font: '13px sans-serif',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                zIndex: 9999,
+                opacity: 0,
+                transform: 'translateY(16px)',
+                transition: 'all 0.2s ease',
+                maxWidth: '360px'
+            });
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)'; });
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(16px)';
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+            }, 2500);
+        }
+
+        // ───────────────────────────────────────────────────────────────
+        // 17. INIT
+        // ───────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('globalDate').value = today;
+            const d = new Date();
+            d.setDate(1);
+            document.getElementById('reportFrom').value = d.toISOString().split('T')[0];
+            document.getElementById('reportTo').value = today;
+        });
+
+        console.log('🥛 Crate Tracker - Excel Edition loaded.');
+        console.log('🔑 Default: user1/user123 | admin/admin123');
+    </script>
+</body>
+</html>

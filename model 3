@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A ONE MILK PRODUCTS PVT LIMITED — Crate Tracking System</title>
+
+<!-- ===================== CDN LIBRARIES ===================== -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ==========================================================================
+   ROOT / THEME TOKENS — Excel grid clarity + Tally ERP structure
+   ========================================================================== */
+:root{
+  --brand-navy:#1a3c6e;
+  --brand-navy-dark:#122a4e;
+  --brand-navy-darker:#0d1f3a;
+  --grid-line:#c7d0dc;
+  --grid-line-soft:#e3e8ee;
+  --paper:#ffffff;
+  --paper-soft:#f6f8fb;
+  --alert-orange:#e8770f;
+  --alert-red-bg:#fbdcdc;
+  --alert-red-text:#a11d1d;
+  --alert-red-border:#e08a8a;
+  --text-main:#1f2a37;
+  --text-muted:#5b6b7c;
+  --accent-green:#1e7d4a;
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-mono: "Consolas", "Courier New", monospace;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  font-family: var(--font-main);
+  background:#e9edf2;
+  color:var(--text-main);
+  font-size:14px;
+}
+
+/* Excel-like dense grid tables everywhere */
+table.grid-table{
+  border-collapse:collapse;
+  width:100%;
+  background:var(--paper);
+  font-size:13px;
+}
+table.grid-table th, table.grid-table td{
+  border:1px solid var(--grid-line);
+  padding:6px 8px;
+  vertical-align:middle;
+}
+table.grid-table thead th{
+  background:var(--brand-navy);
+  color:#fff;
+  font-weight:600;
+  position:sticky;
+  top:0;
+  z-index:2;
+  white-space:nowrap;
+}
+table.grid-table tbody tr:nth-child(even){ background:var(--paper-soft); }
+table.grid-table tbody tr:hover{ background:#eaf1fb; }
+table.grid-table td.cell-input{ padding:2px; }
+table.grid-table input.cell-box{
+  width:100%;
+  border:1px solid transparent;
+  background:transparent;
+  padding:4px 6px;
+  font-size:13px;
+  text-align:right;
+  border-radius:2px;
+}
+table.grid-table input.cell-box:focus{
+  outline:none;
+  border:1px solid var(--brand-navy);
+  background:#fff;
+  box-shadow:0 0 0 2px rgba(26,60,110,.15);
+}
+.shortage-high{
+  background:var(--alert-red-bg) !important;
+  color:var(--alert-red-text);
+  font-weight:700;
+}
+.readonly-cell{ background:#eef1f5 !important; color:var(--text-muted); text-align:right; font-family:var(--font-mono); }
+
+/* ---------- Login Page ---------- */
+#loginScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: linear-gradient(160deg, var(--brand-navy-darker) 0%, var(--brand-navy) 55%, #2b5a9c 100%);
+}
+.login-card{
+  width:420px;
+  background:var(--paper);
+  border-radius:6px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.login-card .titlebar{
+  background:linear-gradient(180deg,#26467c,#1a3c6e);
+  color:#fff;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  letter-spacing:.5px;
+}
+.login-card .titlebar .dots span{
+  display:inline-block; width:10px; height:10px; border-radius:50%; margin-left:5px;
+}
+.login-body{ padding:28px 32px 24px; }
+.login-logo{
+  width:56px;height:56px;border-radius:8px;
+  background:var(--brand-navy);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:26px; margin:0 auto 12px;
+}
+.login-hint{
+  font-size:12px; color:var(--text-muted); background:var(--paper-soft);
+  border:1px dashed var(--grid-line); border-radius:4px; padding:8px 10px; margin-top:14px;
+}
+
+/* ---------- App Shell ---------- */
+#appShell{ display:none; }
+.sidebar{
+  position:fixed; top:0; left:0; bottom:0; width:230px;
+  background:linear-gradient(180deg, var(--brand-navy-darker), var(--brand-navy-dark) 40%, var(--brand-navy));
+  color:#dbe6f5;
+  display:flex; flex-direction:column;
+  z-index:100;
+}
+.sidebar .brand{
+  padding:16px 14px; border-bottom:1px solid rgba(255,255,255,.12);
+}
+.sidebar .brand h6{ margin:0; color:#fff; font-weight:700; font-size:13.5px; line-height:1.3;}
+.sidebar .brand small{ color:#9fb3cc; font-size:11px; }
+.sidebar-nav{ flex:1; padding:10px 0; overflow-y:auto; }
+.sidebar-nav .nav-link{
+  color:#c4d3e6; padding:10px 18px; font-size:13.5px; border-left:3px solid transparent;
+  display:flex; align-items:center; gap:10px; cursor:pointer;
+}
+.sidebar-nav .nav-link i{ width:18px; text-align:center; }
+.sidebar-nav .nav-link:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.sidebar-nav .nav-link.active{
+  background:rgba(255,255,255,.12); color:#fff; border-left:3px solid var(--alert-orange); font-weight:600;
+}
+.sidebar-nav .nav-link .badge{ margin-left:auto; }
+.sidebar-user{
+  padding:12px 14px; border-top:1px solid rgba(255,255,255,.12); font-size:12.5px;
+}
+.sidebar-user .role-pill{
+  display:inline-block; background:var(--alert-orange); color:#fff; padding:1px 8px; border-radius:10px; font-size:10.5px; font-weight:700; letter-spacing:.4px;
+}
+.main-wrap{ margin-left:230px; min-height:100vh; display:flex; flex-direction:column; }
+.topbar{
+  background:#fff; border-bottom:1px solid var(--grid-line);
+  padding:10px 22px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:50;
+}
+.topbar h5{ margin:0; color:var(--brand-navy); font-weight:700; }
+.content-area{ padding:20px 22px 40px; flex:1; }
+.page-section{ display:none; }
+.page-section.active{ display:block; }
+
+/* summary cards */
+.summary-card{
+  border:1px solid var(--grid-line); border-radius:6px; background:#fff;
+  padding:14px 16px; display:flex; align-items:center; gap:14px;
+}
+.summary-card .icon-box{
+  width:46px; height:46px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; flex-shrink:0;
+}
+.summary-card .value{ font-size:22px; font-weight:700; color:var(--text-main); }
+.summary-card .label{ font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+
+.section-card{
+  background:#fff; border:1px solid var(--grid-line); border-radius:6px; margin-bottom:18px;
+}
+.section-card .section-card-header{
+  background:var(--paper-soft); border-bottom:1px solid var(--grid-line);
+  padding:10px 16px; font-weight:700; color:var(--brand-navy); display:flex; align-items:center; justify-content:space-between;
+  border-radius:6px 6px 0 0;
+  font-size:13.5px;
+}
+.section-card .section-card-body{ padding:16px; }
+
+.autocomplete-wrap{ position:relative; }
+.autocomplete-list{
+  position:absolute; z-index:200; background:#fff; border:1px solid var(--grid-line); width:100%;
+  max-height:160px; overflow-y:auto; box-shadow:0 4px 10px rgba(0,0,0,.15); border-radius:0 0 4px 4px;
+}
+.autocomplete-list div{ padding:6px 10px; cursor:pointer; font-size:12.5px; text-align:left; }
+.autocomplete-list div:hover{ background:var(--brand-navy); color:#fff; }
+
+.pill-tabs .nav-link{
+  border-radius:20px !important; font-size:13px; padding:6px 16px; color:var(--brand-navy); font-weight:600;
+}
+.pill-tabs .nav-link.active{ background:var(--brand-navy) !important; color:#fff !important; }
+
+.badge-approval-pending{ background:#f0ad4e; }
+.badge-approval-none{ background:#6c757d; }
+
+.report-card{
+  border:1px solid var(--grid-line); border-radius:6px; background:#fff; padding:16px;
+  height:100%;
+}
+.report-card h6{ color:var(--brand-navy); font-weight:700; }
+
+.toast-container{ z-index:2000; }
+
+@media print{
+  body *{ visibility:hidden; }
+  #printArea, #printArea *{ visibility:visible; }
+  #printArea{ position:absolute; top:0; left:0; width:100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     LOGIN SCREEN
+     ========================================================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="titlebar">
+      <i class="fa-solid fa-warehouse"></i>
+      A ONE MILK PRODUCTS PVT LIMITED — Sign In
+      <div class="dots ms-auto">
+        <span style="background:#f4bd3a;"></span>
+        <span style="background:#4bc86a;"></span>
+        <span style="background:#e6564f;"></span>
+      </div>
+    </div>
+    <div class="login-body">
+      <div class="login-logo"><i class="fa-solid fa-cheese"></i></div>
+      <h5 class="text-center mb-1" style="color:var(--brand-navy); font-weight:700;">A ONE MILK PRODUCTS</h5>
+      <p class="text-center text-muted mb-3" style="font-size:12.5px;">PVT LIMITED — Crate Tracking System</p>
+
+      <form id="loginForm" onsubmit="return handleLogin(event)">
+        <label class="form-label small fw-semibold">Username</label>
+        <input type="text" id="loginUsername" class="form-control mb-2" placeholder="admin / frontoffice / user1" autocomplete="off" required>
+        <label class="form-label small fw-semibold">Password</label>
+        <input type="password" id="loginPassword" class="form-control mb-3" placeholder="any password" required>
+        <button type="submit" class="btn w-100" style="background:var(--brand-navy); color:#fff; font-weight:600;">
+          <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In
+        </button>
+      </form>
+      <div id="loginError" class="text-danger small mt-2" style="display:none;">
+        <i class="fa-solid fa-triangle-exclamation"></i> Unknown username. Please use admin, frontoffice, or user1.
+      </div>
+      <div class="login-hint">
+        <i class="fa-solid fa-circle-info"></i> Demo accounts: <b>admin</b>, <b>frontoffice</b>, or <b>user1</b> (any password).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     MAIN APPLICATION SHELL
+     ========================================================= -->
+<div id="appShell">
+
+  <!-- ---------------- SIDEBAR ---------------- -->
+  <div class="sidebar">
+    <div class="brand">
+      <h6><i class="fa-solid fa-warehouse me-1"></i> A ONE MILK PRODUCTS</h6>
+      <small>PVT LIMITED · Crate Tracking</small>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-link active" data-page="dashboard" onclick="navigateTo('dashboard')">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+      </div>
+      <div class="nav-link" data-page="dailyEntry" onclick="navigateTo('dailyEntry')">
+        <i class="fa-solid fa-table-cells"></i> Daily Entry
+      </div>
+      <div class="nav-link" data-page="masterData" onclick="navigateTo('masterData')" id="navMasterData">
+        <i class="fa-solid fa-database"></i> Master Data
+        <span class="badge rounded-pill badge-approval-pending" id="masterDataBadge" style="display:none;">0</span>
+      </div>
+      <div class="nav-link" data-page="reports" onclick="navigateTo('reports')">
+        <i class="fa-solid fa-file-lines"></i> Reports
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div><i class="fa-solid fa-user-circle me-1"></i><span id="sidebarUserName">-</span></div>
+      <div class="mt-1"><span class="role-pill" id="sidebarUserRole">-</span></div>
+      <button class="btn btn-sm btn-outline-light w-100 mt-2" onclick="handleLogout()">
+        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- ---------------- MAIN CONTENT ---------------- -->
+  <div class="main-wrap">
+    <div class="topbar">
+      <h5 id="pageTitle">Dashboard</h5>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-secondary" id="topbarDate"></span>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <div class="summary-card">
+              <div class="icon-box" style="background:var(--alert-orange);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div>
+                <div class="value" id="dashHighShortageCount">0</div>
+                <div class="label">High Shortage Alerts (&ge;20)</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="summary-card">
+              <div class="icon-box" style="background:var(--brand-navy);"><i class="fa-solid fa-clipboard-check"></i></div>
+              <div>
+                <div class="value" id="dashEntriesCompleted">0/20</div>
+                <div class="label">Today's Entries Completed</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="summary-card">
+              <div class="icon-box" style="background:var(--accent-green);"><i class="fa-solid fa-hourglass-half"></i></div>
+              <div>
+                <div class="value" id="dashPendingApprovals">0</div>
+                <div class="label">Pending Approvals</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-header"><span><i class="fa-solid fa-chart-column me-1"></i> Shortage per Route — Today</span></div>
+          <div class="section-card-body">
+            <canvas id="dashChart" height="90"></canvas>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-header"><span><i class="fa-solid fa-route me-1"></i> Today's Route Summary</span></div>
+          <div class="section-card-body p-0">
+            <div style="max-height:420px; overflow:auto;">
+              <table class="grid-table" id="dashRouteTable">
+                <thead>
+                  <tr><th>Route</th><th>Type</th><th>Salesman</th><th>Crates Out</th><th>Crates In</th><th>Shortage</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DAILY ENTRY ===================== -->
+      <div class="page-section" id="page-dailyEntry">
+        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+          <div>
+            <label class="form-label small fw-semibold mb-1">Entry Date</label>
+            <input type="date" id="entryDate" class="form-control" style="width:170px;" onchange="onEntryDateChange()">
+          </div>
+          <div id="pastDateWarning" class="alert alert-warning py-2 px-3 mb-0 small" style="display:none;">
+            <i class="fa-solid fa-lock me-1"></i> Past dates are locked. Only Admin can edit.
+          </div>
+        </div>
+
+        <ul class="nav nav-pills pill-tabs mb-3" id="dailyEntryTabs">
+          <li class="nav-item">
+            <button class="nav-link active" onclick="switchDailyTab('routeSummary')" id="tabBtn-routeSummary">
+              <i class="fa-solid fa-list-check me-1"></i> Route Summary
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" onclick="switchDailyTab('customerBreakdown')" id="tabBtn-customerBreakdown">
+              <i class="fa-solid fa-people-group me-1"></i> Customer Breakdown
+            </button>
+          </li>
+        </ul>
+
+        <!-- --- Tab: Route Summary --- -->
+        <div id="tab-routeSummary" class="daily-tab">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span><i class="fa-solid fa-sun me-1" style="color:#e8b300;"></i> Morning Routes</span>
+            </div>
+            <div class="section-card-body p-0">
+              <div style="overflow-x:auto;">
+                <table class="grid-table" id="morningRouteTable">
+                  <thead>
+                    <tr>
+                      <th style="min-width:130px;">Route Name</th>
+                      <th style="min-width:150px;">Salesman</th>
+                      <th style="min-width:90px;">Crates Out</th>
+                      <th style="min-width:90px;">Crates In</th>
+                      <th style="min-width:110px;">Prev. Shortage</th>
+                      <th style="min-width:110px;">Current Shortage</th>
+                      <th style="min-width:120px;">Customer View</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-card-header">
+              <span><i class="fa-solid fa-moon me-1" style="color:#4a6da6;"></i> Evening Routes</span>
+            </div>
+            <div class="section-card-body p-0">
+              <div style="overflow-x:auto;">
+                <table class="grid-table" id="eveningRouteTable">
+                  <thead>
+                    <tr>
+                      <th style="min-width:130px;">Route Name</th>
+                      <th style="min-width:150px;">Salesman</th>
+                      <th style="min-width:90px;">Crates Out</th>
+                      <th style="min-width:90px;">Crates In</th>
+                      <th style="min-width:110px;">Prev. Shortage</th>
+                      <th style="min-width:110px;">Current Shortage</th>
+                      <th style="min-width:120px;">Customer View</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn" style="background:var(--brand-navy); color:#fff;" onclick="saveRouteSummary()">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Save Data
+          </button>
+        </div>
+
+        <!-- --- Tab: Customer Breakdown --- -->
+        <div id="tab-customerBreakdown" class="daily-tab" style="display:none;">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span><i class="fa-solid fa-route me-1"></i> Select a Route to Break Down</span>
+            </div>
+            <div class="section-card-body">
+              <div class="d-flex flex-wrap gap-2" id="routePickerButtons"></div>
+            </div>
+          </div>
+
+          <div class="section-card" id="customerBreakdownCard" style="display:none;">
+            <div class="section-card-header">
+              <span id="customerBreakdownTitle">Customer Breakdown</span>
+              <span class="text-white-50" style="font-size:11.5px;" id="customerBreakdownRouteTotals"></span>
+            </div>
+            <div class="section-card-body">
+              <div id="customerValidationMsg" class="alert py-2 px-3 small" style="display:none;"></div>
+              <div style="overflow-x:auto;">
+                <table class="grid-table" id="customerBreakdownTable">
+                  <thead>
+                    <tr>
+                      <th style="min-width:170px;">Customer Name</th>
+                      <th style="min-width:100px;">Crates Out</th>
+                      <th style="min-width:100px;">Crates In</th>
+                      <th style="min-width:100px;">Shortage</th>
+                      <th style="min-width:70px;">Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <button class="btn btn-sm btn-outline-secondary mt-2" onclick="addCustomerBreakdownRow()">
+                <i class="fa-solid fa-plus me-1"></i> Add Customer
+              </button>
+              <div class="mt-3">
+                <button class="btn" style="background:var(--brand-navy); color:#fff;" onclick="saveCustomerBreakdown()">
+                  <i class="fa-solid fa-floppy-disk me-1"></i> Save Customer Breakdown
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== MASTER DATA ===================== -->
+      <div class="page-section" id="page-masterData">
+        <ul class="nav nav-pills pill-tabs mb-3">
+          <li class="nav-item"><button class="nav-link active" onclick="switchMasterTab('routes')" id="mtabBtn-routes"><i class="fa-solid fa-road me-1"></i> Routes</button></li>
+          <li class="nav-item"><button class="nav-link" onclick="switchMasterTab('salesmen')" id="mtabBtn-salesmen"><i class="fa-solid fa-user-tie me-1"></i> Salesmen</button></li>
+          <li class="nav-item"><button class="nav-link" onclick="switchMasterTab('customers')" id="mtabBtn-customers"><i class="fa-solid fa-shop me-1"></i> Customers</button></li>
+        </ul>
+
+        <!-- Routes -->
+        <div class="master-tab" id="mtab-routes">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span><i class="fa-solid fa-road me-1"></i> Routes Master</span>
+              <button class="btn btn-sm btn-light" onclick="addRoute()" id="btnAddRoute"><i class="fa-solid fa-plus me-1"></i> Add Route</button>
+            </div>
+            <div class="section-card-body p-0">
+              <table class="grid-table">
+                <thead><tr><th>Name</th><th>Type</th><th>Approval Status</th><th>Actions</th></tr></thead>
+                <tbody id="routesMasterTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salesmen -->
+        <div class="master-tab" id="mtab-salesmen" style="display:none;">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span><i class="fa-solid fa-user-tie me-1"></i> Salesmen Master</span>
+              <button class="btn btn-sm btn-light" onclick="addSalesman()" id="btnAddSalesman"><i class="fa-solid fa-plus me-1"></i> Add Salesman</button>
+            </div>
+            <div class="section-card-body p-0">
+              <table class="grid-table">
+                <thead><tr><th>Name</th><th>Approval Status</th><th>Actions</th></tr></thead>
+                <tbody id="salesmenMasterTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customers -->
+        <div class="master-tab" id="mtab-customers" style="display:none;">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span><i class="fa-solid fa-shop me-1"></i> Customers Master</span>
+              <button class="btn btn-sm btn-light" onclick="addCustomer()" id="btnAddCustomer"><i class="fa-solid fa-plus me-1"></i> Add Customer</button>
+            </div>
+            <div class="section-card-body p-0">
+              <table class="grid-table">
+                <thead><tr><th>Name</th><th>Default Route</th><th>Approval Status</th><th>Actions</th></tr></thead>
+                <tbody id="customersMasterTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approval Queue -->
+        <div class="section-card" id="approvalQueueCard">
+          <div class="section-card-header"><span><i class="fa-solid fa-hourglass-half me-1"></i> Pending Approval Queue</span></div>
+          <div class="section-card-body p-0">
+            <table class="grid-table">
+              <thead><tr><th>Type</th><th>Change</th><th>Requested By</th><th style="width:160px;">Actions</th></tr></thead>
+              <tbody id="approvalQueueTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== REPORTS ===================== -->
+      <div class="page-section" id="page-reports">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="report-card">
+              <h6><i class="fa-solid fa-calendar-day me-1"></i> Daily Report</h6>
+              <label class="form-label small">Date</label>
+              <input type="date" class="form-control mb-2" id="rep_daily_date">
+              <button class="btn btn-sm w-100" style="background:var(--brand-navy); color:#fff;" onclick="openReport('daily')">
+                <i class="fa-solid fa-eye me-1"></i> View
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="report-card">
+              <h6><i class="fa-solid fa-shop me-1"></i> Customer-wise Statement</h6>
+              <label class="form-label small">Customer</label>
+              <select class="form-select mb-2" id="rep_customer_select"></select>
+              <button class="btn btn-sm w-100" style="background:var(--brand-navy); color:#fff;" onclick="openReport('customer')">
+                <i class="fa-solid fa-eye me-1"></i> View
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="report-card">
+              <h6><i class="fa-solid fa-road me-1"></i> Route-wise Statement</h6>
+              <label class="form-label small">Route</label>
+              <select class="form-select mb-2" id="rep_route_select"></select>
+              <button class="btn btn-sm w-100" style="background:var(--brand-navy); color:#fff;" onclick="openReport('route')">
+                <i class="fa-solid fa-eye me-1"></i> View
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="report-card">
+              <h6><i class="fa-solid fa-user-tie me-1"></i> Salesman-wise Statement</h6>
+              <label class="form-label small">Salesman</label>
+              <select class="form-select mb-2" id="rep_salesman_select"></select>
+              <button class="btn btn-sm w-100" style="background:var(--brand-navy); color:#fff;" onclick="openReport('salesman')">
+                <i class="fa-solid fa-eye me-1"></i> View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-wrap -->
+</div><!-- /appShell -->
+
+<!-- =========================================================
+     REPORT MODAL
+     ========================================================= -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--brand-navy); color:#fff;">
+        <h5 class="modal-title" id="reportModalTitle">Report</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="printArea">
+          <h4 class="text-center mb-1">A ONE MILK PRODUCTS PVT LIMITED</h4>
+          <p class="text-center text-muted mb-3" id="reportSubtitle"></p>
+          <table class="grid-table" id="reportModalTable">
+            <thead><tr id="reportModalHeadRow"></tr></thead>
+            <tbody id="reportModalBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print / PDF</button>
+        <button class="btn" style="background:var(--accent-green); color:#fff;" onclick="exportReportToExcel()"><i class="fa-solid fa-file-excel me-1"></i> Export to Excel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+<script>
+/* ==========================================================================
+   GLOBAL STATE (Simulated Database)
+   ========================================================================== */
+const state = {
+  currentUser: null,
+
+  salesmen: ["Joseph","Jomon","Rahul","John","Anil","Suresh","Manoj","Biju","Arun","Vinod"],
+
+  routes: (function(){
+    const r = [];
+    for(let i=1;i<=10;i++) r.push({id:"M"+i, name:"Morning Route "+i, type:"Morning"});
+    for(let i=1;i<=10;i++) r.push({id:"E"+i, name:"Evening Route "+i, type:"Evening"});
+    return r;
+  })(),
+
+  customers: [
+    {id:"C1", name:"Sunrise Bakery", defaultRoute:"M1"},
+    {id:"C2", name:"Green Valley Hotel", defaultRoute:"M1"},
+    {id:"C3", name:"City Supermart", defaultRoute:"M2"},
+    {id:"C4", name:"Star Sweets", defaultRoute:"M2"},
+    {id:"C5", name:"Palm Grove Restaurant", defaultRoute:"M3"},
+    {id:"C6", name:"Coastal Cafe", defaultRoute:"E1"},
+    {id:"C7", name:"Mother Dairy Booth", defaultRoute:"E2"},
+  ],
+
+  dailyEntries: {},
+  approvalQueue: [],
+  nextQueueId: 1,
+  nextCustomerId: 8,
+};
+
+const mockPrevShortage = {
+  M1:5, M2:8, M3:0, M4:12, M5:3, M6:0, M7:6, M8:0, M9:15, M10:2,
+  E1:4, E2:0, E3:9, E4:0, E5:1, E6:0, E7:7, E8:0, E9:0, E10:3
+};
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function getPreviousDateStr(dateStr){
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0,10);
+}
+
+/* ==========================================================================
+   DYNAMIC OPENING SHORTAGE CALCULATION & INITIALIZATION
+   ========================================================================== */
+function getOpeningShortage(routeId, dateStr){
+  const prevDate = getPreviousDateStr(dateStr);
+  if(state.dailyEntries[prevDate]){
+    const prevEntry = state.dailyEntries[prevDate];
+    const prevRoute = [...prevEntry.morningRoutes, ...prevEntry.eveningRoutes].find(r=>r.routeId===routeId);
+    if(prevRoute) return prevRoute.currentShortage;
+  }
+  return mockPrevShortage[routeId] ?? 0;
+}
+
+function ensureDateEntry(dateStr){
+  if(state.dailyEntries[dateStr]){
+    const entry = state.dailyEntries[dateStr];
+    state.routes.forEach(r=>{
+      const isMorning = r.type==="Morning";
+      const targetArr = isMorning ? entry.morningRoutes : entry.eveningRoutes;
+      if(!targetArr.some(x=>x.routeId===r.id)){
+        const prevShort = getOpeningShortage(r.id, dateStr);
+        targetArr.push({
+          routeId: r.id, routeName: r.name, salesman: "", cratesOut: null, cratesIn: null,
+          prevShortage: prevShort, currentShortage: prevShort, status: "draft", customerBreakdown: []
+        });
+      }
+    });
+    return entry;
+  }
+
+  const morningRoutes = state.routes.filter(r=>r.type==="Morning").map(r=>{
+    const prevShort = getOpeningShortage(r.id, dateStr);
+    return {
+      routeId:r.id, routeName:r.name, salesman:"", cratesOut:null, cratesIn:null,
+      prevShortage: prevShort, currentShortage: prevShort, status:"draft", customerBreakdown: []
+    };
+  });
+
+  const eveningRoutes = state.routes.filter(r=>r.type==="Evening").map(r=>{
+    const prevShort = getOpeningShortage(r.id, dateStr);
+    return {
+      routeId:r.id, routeName:r.name, salesman:"", cratesOut:null, cratesIn:null,
+      prevShortage: prevShort, currentShortage: prevShort, status:"draft", customerBreakdown: []
+    };
+  });
+
+  state.dailyEntries[dateStr] = { morningRoutes, eveningRoutes };
+  return state.dailyEntries[dateStr];
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATIONS
+   ========================================================================== */
+function showToast(message, type="success"){
+  const bg = type==="success" ? "text-bg-success" : (type==="warning" ? "text-bg-warning" : "text-bg-danger");
+  const id = "toast"+Date.now();
+  const html = `<div id="${id}" class="toast align-items-center ${bg} border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body"><i class="fa-solid fa-circle-check me-1"></i> ${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>`;
+  document.getElementById("toastContainer").insertAdjacentHTML("beforeend", html);
+  const el = document.getElementById(id);
+  const t = new bootstrap.Toast(el, {delay:2800});
+  t.show();
+  el.addEventListener("hidden.bs.toast", ()=>el.remove());
+}
+
+/* ==========================================================================
+   LOGIN / LOGOUT PERMISSIONS
+   ========================================================================== */
+const ROLE_MAP = {
+  admin: {role:"Admin", displayName:"Administrator"},
+  frontoffice: {role:"Front Office", displayName:"Front Office User"},
+  user1: {role:"User1", displayName:"User1"}
+};
+
+function handleLogin(e){
+  e.preventDefault();
+  const uname = document.getElementById("loginUsername").value.trim().toLowerCase();
+  const match = ROLE_MAP[uname];
+  const errorBox = document.getElementById("loginError");
+  if(!match){
+    errorBox.style.display = "block";
+    return false;
+  }
+  errorBox.style.display = "none";
+  state.currentUser = { username: uname, role: match.role, displayName: match.displayName };
+
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appShell").style.display = "block";
+  document.getElementById("sidebarUserName").textContent = match.displayName;
+  document.getElementById("sidebarUserRole").textContent = match.role;
+  document.getElementById("topbarDate").textContent = new Date().toDateString();
+
+  applyRolePermissions();
+  document.getElementById("entryDate").value = todayStr();
+  document.getElementById("rep_daily_date").value = todayStr();
+
+  ensureDateEntry(todayStr());
+  renderAll();
+  return false;
+}
+
+function handleLogout(){
+  state.currentUser = null;
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("loginForm").reset();
+}
+
+function isAdmin(){ return state.currentUser && state.currentUser.role === "Admin"; }
+
+function applyRolePermissions(){
+  const addRouteBtn = document.getElementById("btnAddRoute");
+  const addSalesmanBtn = document.getElementById("btnAddSalesman");
+  const addCustomerBtn = document.getElementById("btnAddCustomer");
+  const approvalCard = document.getElementById("approvalQueueCard");
+  if(isAdmin()){
+    addRouteBtn.style.display="inline-block";
+    addSalesmanBtn.style.display="inline-block";
+    addCustomerBtn.style.display="inline-block";
+    approvalCard.style.display="block";
+  } else {
+    addRouteBtn.style.display="none";
+    addSalesmanBtn.style.display="none";
+    addCustomerBtn.style.display="none";
+    approvalCard.style.display="none";
+  }
+}
+
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+const PAGE_TITLES = { dashboard:"Dashboard", dailyEntry:"Daily Entry", masterData:"Master Data", reports:"Reports" };
+
+function navigateTo(page){
+  document.querySelectorAll(".page-section").forEach(el=>el.classList.remove("active"));
+  document.getElementById("page-"+page).classList.add("active");
+  document.querySelectorAll(".sidebar-nav .nav-link").forEach(el=>el.classList.remove("active"));
+  document.querySelector(`.sidebar-nav .nav-link[data-page="${page}"]`).classList.add("active");
+  document.getElementById("pageTitle").textContent = PAGE_TITLES[page];
+
+  if(page==="dashboard") renderDashboard();
+  if(page==="masterData") renderMasterData();
+  if(page==="reports") renderReportSelectors();
+}
+
+function getRouteById(id){ return state.routes.find(r=>r.id===id); }
+function getRouteByName(name){ return state.routes.find(r=>r.name===name); }
+
+/* ==========================================================================
+   DAILY ENTRY — ROUTE SUMMARY TAB
+   ========================================================================== */
+let activeDailyTab = "routeSummary";
+
+function switchDailyTab(tab){
+  activeDailyTab = tab;
+  document.querySelectorAll(".daily-tab").forEach(el=>el.style.display="none");
+  document.getElementById("tab-"+tab).style.display="block";
+  document.querySelectorAll("#dailyEntryTabs .nav-link").forEach(el=>el.classList.remove("active"));
+  document.getElementById("tabBtn-"+tab).classList.add("active");
+  if(tab==="customerBreakdown") renderRoutePickerButtons();
+}
+
+function onEntryDateChange(){
+  const dateStr = document.getElementById("entryDate").value;
+  const isPast = dateStr < todayStr();
+  const warning = document.getElementById("pastDateWarning");
+
+  if(isPast && !isAdmin()){
+    warning.style.display = "block";
+    document.getElementById("entryDate").value = todayStr();
+    renderRouteSummaryTables();
+    return;
+  }
+  warning.style.display = isPast ? "block" : "none";
+  ensureDateEntry(dateStr);
+  renderRouteSummaryTables();
+  renderRoutePickerButtons();
+}
+
+function currentEntryDate(){ return document.getElementById("entryDate").value || todayStr(); }
+function currentEntryLocked(){ return currentEntryDate() < todayStr() && !isAdmin(); }
+
+function calcShortage(row){
+  const out = Number(row.cratesOut)||0;
+  const inn = Number(row.cratesIn)||0;
+  row.currentShortage = (Number(row.prevShortage)||0) + out - inn;
+  return row.currentShortage;
+}
+
+function renderRouteSummaryTables(){
+  const dateStr = currentEntryDate();
+  const entry = ensureDateEntry(dateStr);
+  const locked = currentEntryLocked();
+
+  renderRouteTableBody("morningRouteTable", entry.morningRoutes, locked);
+  renderRouteTableBody("eveningRouteTable", entry.eveningRoutes, locked);
+}
+
+function renderRouteTableBody(tableId, rows, locked){
+  const tbody = document.querySelector("#"+tableId+" tbody");
+  tbody.innerHTML = "";
+  rows.forEach((row, idx)=>{
+    calcShortage(row);
+    const shortageClass = row.currentShortage >= 20 ? "shortage-high" : "";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.routeName}</td>
+      <td class="cell-input autocomplete-wrap">
+        <input type="text" class="cell-box text-start" style="text-align:left;" value="${row.salesman}"
+          data-table="${tableId}" data-idx="${idx}" data-field="salesman"
+          oninput="onSalesmanInput(this)" onfocus="onSalesmanInput(this)" onblur="setTimeout(()=>closeAutocomplete(this),150)"
+          ${locked?"disabled":""} placeholder="Type name...">
+        <div class="autocomplete-list" style="display:none;"></div>
+      </td>
+      <td class="cell-input">
+        <input type="number" min="0" class="cell-box" value="${row.cratesOut ?? ""}"
+          data-table="${tableId}" data-idx="${idx}" data-field="cratesOut"
+          oninput="onRouteFieldChange(this)" onkeydown="onGridEnter(event,this)" ${locked?"disabled":""}>
+      </td>
+      <td class="cell-input">
+        <input type="number" min="0" class="cell-box" value="${row.cratesIn ?? ""}"
+          data-table="${tableId}" data-idx="${idx}" data-field="cratesIn"
+          oninput="onRouteFieldChange(this)" onkeydown="onGridEnter(event,this)" ${locked?"disabled":""}>
+      </td>
+      <td class="readonly-cell">${row.prevShortage}</td>
+      <td class="readonly-cell ${shortageClass}" id="${tableId}-shortage-${idx}">${row.currentShortage}</td>
+      <td class="text-center">
+        <button class="btn btn-sm btn-outline-primary" onclick="jumpToCustomerBreakdown('${row.routeId}')">
+          <i class="fa-solid fa-magnifying-glass"></i> Customers
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function onSalesmanInput(input){
+  const list = input.nextElementSibling;
+  const val = input.value.toLowerCase();
+  const matches = state.salesmen.filter(s=>s.toLowerCase().includes(val));
+  if(!val || matches.length===0){
+    if(val.length===0 && document.activeElement===input){
+      renderAutocompleteList(list, state.salesmen, input);
+      return;
+    }
+    list.style.display="none";
+    return;
+  }
+  renderAutocompleteList(list, matches, input);
+}
+function renderAutocompleteList(list, items, input){
+  list.innerHTML = items.map(name=>`<div onmousedown="selectSalesman(event,this)">${name}</div>`).join("");
+  list.style.display = items.length ? "block" : "none";
+}
+function selectSalesman(e, div){
+  const list = div.parentElement;
+  const input = list.previousElementSibling;
+  input.value = div.textContent;
+  list.style.display = "none";
+  onRouteFieldChange(input);
+}
+function closeAutocomplete(input){
+  const list = input.nextElementSibling;
+  if(list) list.style.display = "none";
+}
+
+function onRouteFieldChange(input){
+  const tableId = input.dataset.table;
+  const idx = Number(input.dataset.idx);
+  const field = input.dataset.field;
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  const rows = tableId === "morningRouteTable" ? entry.morningRoutes : entry.eveningRoutes;
+  const row = rows[idx];
+
+  if(field==="salesman") row.salesman = input.value;
+  else row[field] = input.value === "" ? null : Number(input.value);
+
+  calcShortage(row);
+  const cell = document.getElementById(`${tableId}-shortage-${idx}`);
+  cell.textContent = row.currentShortage;
+  cell.classList.toggle("shortage-high", row.currentShortage >= 20);
+}
+
+/* Keyboard Arrow Key / Enter Navigation inside Grid Tables */
+function onGridEnter(e, input){
+  const key = e.key;
+  if(!["Enter", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"].includes(key)) return;
+
+  const table = input.closest("table");
+  const inputsInTable = Array.from(table.querySelectorAll("input.cell-box"));
+  const currIdx = inputsInTable.indexOf(input);
+
+  if(key === "Enter" || key === "ArrowDown"){
+    e.preventDefault();
+    if(currIdx + 2 < inputsInTable.length) inputsInTable[currIdx + 2].focus();
+    else if(currIdx + 1 < inputsInTable.length) inputsInTable[currIdx + 1].focus();
+  } else if(key === "ArrowUp"){
+    e.preventDefault();
+    if(currIdx - 2 >= 0) inputsInTable[currIdx - 2].focus();
+  } else if(key === "ArrowRight"){
+    if(input.selectionEnd === input.value.length){
+      e.preventDefault();
+      if(currIdx + 1 < inputsInTable.length) inputsInTable[currIdx + 1].focus();
+    }
+  } else if(key === "ArrowLeft"){
+    if(input.selectionStart === 0){
+      e.preventDefault();
+      if(currIdx - 1 >= 0) inputsInTable[currIdx - 1].focus();
+    }
+  }
+}
+
+function saveRouteSummary(){
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  [...entry.morningRoutes, ...entry.eveningRoutes].forEach(r=>{ r.status = "saved"; });
+  showToast("Data saved successfully for "+dateStr+".", "success");
+  renderDashboard();
+}
+
+/* ==========================================================================
+   DAILY ENTRY — CUSTOMER BREAKDOWN TAB
+   ========================================================================== */
+let activeBreakdownRouteId = null;
+
+function renderRoutePickerButtons(){
+  const dateStr = currentEntryDate();
+  const entry = ensureDateEntry(dateStr);
+  const all = [...entry.morningRoutes, ...entry.eveningRoutes];
+  const wrap = document.getElementById("routePickerButtons");
+  wrap.innerHTML = all.map(r=>`
+    <button class="btn btn-sm btn-outline-primary" onclick="jumpToCustomerBreakdown('${r.routeId}')">
+      <i class="fa-solid fa-route me-1"></i> Show Customers for ${r.routeName}
+    </button>
+  `).join("");
+}
+
+function jumpToCustomerBreakdown(routeId){
+  switchDailyTab("customerBreakdown");
+  activeBreakdownRouteId = routeId;
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  const row = [...entry.morningRoutes, ...entry.eveningRoutes].find(r=>r.routeId===routeId);
+
+  document.getElementById("customerBreakdownCard").style.display = "block";
+  document.getElementById("customerBreakdownTitle").textContent = "Customer Breakdown — " + row.routeName;
+  document.getElementById("customerBreakdownRouteTotals").textContent =
+    `Route Total — Out: ${row.cratesOut ?? 0}, In: ${row.cratesIn ?? 0}`;
+
+  if(row.customerBreakdown.length === 0){
+    const relevantCustomers = state.customers.filter(c=>c.defaultRoute===routeId);
+    const useCustomers = relevantCustomers.length ? relevantCustomers : state.customers.slice(0,2);
+    const n = useCustomers.length || 1;
+    const outEach = row.cratesOut ? Math.floor(row.cratesOut / n) : 0;
+    const inEach = row.cratesIn ? Math.floor(row.cratesIn / n) : 0;
+    row.customerBreakdown = useCustomers.map((c,i)=>({
+      custId:c.id, name:c.name,
+      out: i===n-1 && row.cratesOut ? row.cratesOut - outEach*(n-1) : outEach,
+      inn: i===n-1 && row.cratesIn ? row.cratesIn - inEach*(n-1) : inEach
+    }));
+  }
+  renderCustomerBreakdownTable(row);
+}
+
+function renderCustomerBreakdownTable(row){
+  const tbody = document.querySelector("#customerBreakdownTable tbody");
+  tbody.innerHTML = "";
+  row.customerBreakdown.forEach((cb, idx)=>{
+    const shortage = (cb.out||0) - (cb.inn||0);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="cell-input autocomplete-wrap">
+        <input type="text" class="cell-box text-start" style="text-align:left;" value="${cb.name}"
+          oninput="onCustomerBreakdownChange(${idx},'name',this.value)">
+      </td>
+      <td class="cell-input">
+        <input type="number" min="0" class="cell-box" value="${cb.out ?? ""}"
+          oninput="onCustomerBreakdownChange(${idx},'out',this.value)">
+      </td>
+      <td class="cell-input">
+        <input type="number" min="0" class="cell-box" value="${cb.inn ?? ""}"
+          oninput="onCustomerBreakdownChange(${idx},'inn',this.value)">
+      </td>
+      <td class="readonly-cell ${shortage>=20?'shortage-high':''}">${shortage}</td>
+      <td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="removeCustomerBreakdownRow(${idx})"><i class="fa-solid fa-trash"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  validateCustomerBreakdown(row);
+}
+
+function onCustomerBreakdownChange(idx, field, value){
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  const row = [...entry.morningRoutes, ...entry.eveningRoutes].find(r=>r.routeId===activeBreakdownRouteId);
+  if(field==="name") row.customerBreakdown[idx].name = value;
+  else row.customerBreakdown[idx][field] = value===""?null:Number(value);
+  renderCustomerBreakdownTable(row);
+}
+
+function addCustomerBreakdownRow(){
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  const row = [...entry.morningRoutes, ...entry.eveningRoutes].find(r=>r.routeId===activeBreakdownRouteId);
+  row.customerBreakdown.push({custId:null, name:"New Customer", out:0, inn:0});
+  renderCustomerBreakdownTable(row);
+}
+function removeCustomerBreakdownRow(idx){
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  const row = [...entry.morningRoutes, ...entry.eveningRoutes].find(r=>r.routeId===activeBreakdownRouteId);
+  row.customerBreakdown.splice(idx,1);
+  renderCustomerBreakdownTable(row);
+}
+
+function validateCustomerBreakdown(row){
+  const sumOut = row.customerBreakdown.reduce((s,c)=>s+(Number(c.out)||0),0);
+  const sumIn = row.customerBreakdown.reduce((s,c)=>s+(Number(c.inn)||0),0);
+  const msgBox = document.getElementById("customerValidationMsg");
+  const routeOut = Number(row.cratesOut)||0;
+  const routeIn = Number(row.cratesIn)||0;
+
+  if(sumOut !== routeOut || sumIn !== routeIn){
+    msgBox.className = "alert alert-warning py-2 px-3 small";
+    msgBox.style.display = "block";
+    msgBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i>
+      Mismatch: Customer totals (Out: ${sumOut}, In: ${sumIn}) do not match Route totals (Out: ${routeOut}, In: ${routeIn}).`;
+    return false;
+  } else {
+    msgBox.className = "alert alert-success py-2 px-3 small";
+    msgBox.style.display = "block";
+    msgBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> Customer totals match route totals.`;
+    return true;
+  }
+}
+
+function saveCustomerBreakdown(){
+  const dateStr = currentEntryDate();
+  const entry = state.dailyEntries[dateStr];
+  const row = [...entry.morningRoutes, ...entry.eveningRoutes].find(r=>r.routeId===activeBreakdownRouteId);
+  const ok = validateCustomerBreakdown(row);
+  if(!ok){
+    showToast("Saved with mismatch warning — please review totals.", "warning");
+  } else {
+    showToast("Customer breakdown saved for "+row.routeName+".", "success");
+  }
+}
+
+/* ==========================================================================
+   DASHBOARD
+   ========================================================================== */
+let dashChartInstance = null;
+
+function renderDashboard(){
+  const dateStr = todayStr();
+  const entry = ensureDateEntry(dateStr);
+  const allRows = [...entry.morningRoutes, ...entry.eveningRoutes];
+
+  const highShortageCount = allRows.filter(r=>calcShortage(r)>=20).length;
+  const completed = allRows.filter(r=>r.status==="saved").length;
+
+  document.getElementById("dashHighShortageCount").textContent = highShortageCount;
+  document.getElementById("dashEntriesCompleted").textContent = `${completed}/${allRows.length}`;
+  document.getElementById("dashPendingApprovals").textContent = state.approvalQueue.length;
+
+  const tbody = document.querySelector("#dashRouteTable tbody");
+  tbody.innerHTML = "";
+  allRows.forEach(r=>{
+    const shortage = calcShortage(r);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.routeName}</td>
+      <td>${getRouteById(r.routeId)?.type||""}</td>
+      <td>${r.salesman||"<span class='text-muted'>—</span>"}</td>
+      <td class="text-end">${r.cratesOut ?? 0}</td>
+      <td class="text-end">${r.cratesIn ?? 0}</td>
+      <td class="text-end ${shortage>=20?'shortage-high':''}">${shortage}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const ctx = document.getElementById("dashChart").getContext("2d");
+  const labels = allRows.map(r=>r.routeName);
+  const data = allRows.map(r=>calcShortage(r));
+  const colors = data.map(v=>v>=20 ? "#e8770f" : "#1a3c6e");
+  if(dashChartInstance) dashChartInstance.destroy();
+  dashChartInstance = new Chart(ctx, {
+    type:"bar",
+    data:{ labels, datasets:[{label:"Shortage", data, backgroundColor:colors}] },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ ticks:{ font:{size:9} } }, y:{ beginAtZero:true } }
+    }
+  });
+
+  updateApprovalBadge();
+}
+
+function updateApprovalBadge(){
+  const badge = document.getElementById("masterDataBadge");
+  if(state.approvalQueue.length > 0 && isAdmin()){
+    badge.style.display = "inline-block";
+    badge.textContent = state.approvalQueue.length;
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+/* ==========================================================================
+   MASTER DATA PAGE
+   ========================================================================== */
+let activeMasterTab = "routes";
+function switchMasterTab(tab){
+  activeMasterTab = tab;
+  document.querySelectorAll(".master-tab").forEach(el=>el.style.display="none");
+  document.getElementById("mtab-"+tab).style.display="block";
+  document.querySelectorAll("#page-masterData .pill-tabs .nav-link").forEach(el=>el.classList.remove("active"));
+  document.getElementById("mtabBtn-"+tab).classList.add("active");
+}
+
+function pendingApprovalBadgeHtml(targetId){
+  const pending = state.approvalQueue.some(q=>q.targetId===targetId);
+  return pending
+    ? `<span class="badge badge-approval-pending">Pending</span>`
+    : `<span class="badge badge-approval-none">None</span>`;
+}
+
+function renderMasterData(){
+  renderRoutesMaster();
+  renderSalesmenMaster();
+  renderCustomersMaster();
+  renderApprovalQueue();
+  applyRolePermissions();
+}
+
+function renderRoutesMaster(){
+  const tbody = document.getElementById("routesMasterTable");
+  tbody.innerHTML = state.routes.map(r=>`
+    <tr>
+      <td>${r.name}</td>
+      <td>${r.type}</td>
+      <td>${pendingApprovalBadgeHtml(r.id)}</td>
+      <td>
+        ${isAdmin() ? `
+          <button class="btn btn-sm btn-outline-primary" onclick="editRoute('${r.id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteRoute('${r.id}')"><i class="fa-solid fa-trash"></i></button>
+        ` : `
+          <button class="btn btn-sm btn-outline-secondary" onclick="requestEditRoute('${r.id}')"><i class="fa-solid fa-paper-plane"></i> Edit Request</button>
+        `}
+      </td>
+    </tr>
+  `).join("");
+}
+
+function addRoute(){
+  if(!isAdmin()) return;
+  const name = prompt("Enter new route name:");
+  if(!name) return;
+  const type = prompt("Enter route type (Morning/Evening):","Morning");
+  const isEvening = type && type.toLowerCase().startsWith("e");
+  const id = (isEvening ? "E" : "M") + (Date.now()%100000);
+  state.routes.push({id, name, type: isEvening ? "Evening":"Morning"});
+  showToast("Route added: "+name, "success");
+  syncMasterDataChanges();
+}
+function editRoute(id){
+  const route = getRouteById(id);
+  const newName = prompt("Rename route:", route.name);
+  if(!newName || newName===route.name) return;
+  route.name = newName;
+  showToast("Route updated.", "success");
+  syncMasterDataChanges();
+}
+function deleteRoute(id){
+  const route = getRouteById(id);
+  if(!confirm(`Delete route "${route.name}"?`)) return;
+  state.routes = state.routes.filter(r=>r.id!==id);
+  showToast("Route deleted.", "success");
+  syncMasterDataChanges();
+}
+function requestEditRoute(id){
+  const route = getRouteById(id);
+  const newName = prompt("Propose new name for route (requires Admin approval):", route.name);
+  if(!newName || newName===route.name) return;
+  state.approvalQueue.push({
+    id: state.nextQueueId++,
+    type:"route", action:"edit", targetId:id,
+    oldValue: route.name, newValue:newName,
+    requestedBy: state.currentUser.role
+  });
+  showToast("Edit request submitted for Admin approval.", "warning");
+  renderRoutesMaster();
+  renderApprovalQueue();
+  updateApprovalBadge();
+}
+
+function renderSalesmenMaster(){
+  const tbody = document.getElementById("salesmenMasterTable");
+  tbody.innerHTML = state.salesmen.map(name=>`
+    <tr>
+      <td>${name}</td>
+      <td>${pendingApprovalBadgeHtml(name)}</td>
+      <td>
+        ${isAdmin() ? `
+          <button class="btn btn-sm btn-outline-primary" onclick="editSalesman('${name}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteSalesman('${name}')"><i class="fa-solid fa-trash"></i></button>
+        ` : `
+          <button class="btn btn-sm btn-outline-secondary" onclick="requestEditSalesman('${name}')"><i class="fa-solid fa-paper-plane"></i> Edit Request</button>
+        `}
+      </td>
+    </tr>
+  `).join("");
+}
+function addSalesman(){
+  if(!isAdmin()) return;
+  const name = prompt("Enter new salesman name:");
+  if(!name) return;
+  state.salesmen.push(name);
+  showToast("Salesman added: "+name, "success");
+  syncMasterDataChanges();
+}
+function editSalesman(oldName){
+  const newName = prompt("Rename salesman:", oldName);
+  if(!newName || newName===oldName) return;
+  const idx = state.salesmen.indexOf(oldName);
+  state.salesmen[idx] = newName;
+  showToast("Salesman updated.", "success");
+  syncMasterDataChanges();
+}
+function deleteSalesman(name){
+  if(!confirm(`Delete salesman "${name}"?`)) return;
+  state.salesmen = state.salesmen.filter(s=>s!==name);
+  showToast("Salesman deleted.", "success");
+  syncMasterDataChanges();
+}
+function requestEditSalesman(oldName){
+  const newName = prompt("Propose new name for salesman (requires Admin approval):", oldName);
+  if(!newName || newName===oldName) return;
+  state.approvalQueue.push({
+    id: state.nextQueueId++,
+    type:"salesman", action:"edit", targetId:oldName,
+    oldValue:oldName, newValue:newName,
+    requestedBy: state.currentUser.role
+  });
+  showToast("Edit request submitted for Admin approval.", "warning");
+  renderSalesmenMaster();
+  renderApprovalQueue();
+  updateApprovalBadge();
+}
+
+function renderCustomersMaster(){
+  const tbody = document.getElementById("customersMasterTable");
+  tbody.innerHTML = state.customers.map(c=>`
+    <tr>
+      <td>${c.name}</td>
+      <td>${getRouteById(c.defaultRoute)?.name || "—"}</td>
+      <td>${pendingApprovalBadgeHtml(c.id)}</td>
+      <td>
+        ${isAdmin() ? `
+          <button class="btn btn-sm btn-outline-primary" onclick="editCustomer('${c.id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+        ` : `
+          <button class="btn btn-sm btn-outline-secondary" onclick="requestAddCustomer()"><i class="fa-solid fa-paper-plane"></i> Propose New</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="requestEditCustomer('${c.id}')"><i class="fa-solid fa-paper-plane"></i> Edit Request</button>
+        `}
+      </td>
+    </tr>
+  `).join("");
+}
+function addCustomer(){
+  if(!isAdmin()) return;
+  const name = prompt("Enter new customer name:");
+  if(!name) return;
+  const routeName = prompt("Default route name (e.g. Morning Route 1):");
+  const route = getRouteByName(routeName);
+  const id = "C"+(state.nextCustomerId++);
+  state.customers.push({id, name, defaultRoute: route ? route.id : ""});
+  showToast("Customer added: "+name, "success");
+  syncMasterDataChanges();
+}
+function editCustomer(id){
+  const c = state.customers.find(x=>x.id===id);
+  const newName = prompt("Rename customer:", c.name);
+  if(newName && newName!==c.name) c.name = newName;
+  const newRouteName = prompt("Default route:", getRouteById(c.defaultRoute)?.name || "");
+  const newRoute = getRouteByName(newRouteName);
+  if(newRoute) c.defaultRoute = newRoute.id;
+  showToast("Customer updated.", "success");
+  syncMasterDataChanges();
+}
+function deleteCustomer(id){
+  const c = state.customers.find(x=>x.id===id);
+  if(!confirm(`Delete customer "${c.name}"?`)) return;
+  state.customers = state.customers.filter(x=>x.id!==id);
+  showToast("Customer deleted.", "success");
+  syncMasterDataChanges();
+}
+function requestEditCustomer(id){
+  const c = state.customers.find(x=>x.id===id);
+  const newName = prompt("Propose new name for customer (requires Admin approval):", c.name);
+  if(!newName || newName===c.name) return;
+  state.approvalQueue.push({
+    id: state.nextQueueId++,
+    type:"customer", action:"edit", targetId:id,
+    oldValue:c.name, newValue:newName,
+    requestedBy: state.currentUser.role
+  });
+  showToast("Edit request submitted for Admin approval.", "warning");
+  renderCustomersMaster();
+  renderApprovalQueue();
+  updateApprovalBadge();
+}
+function requestAddCustomer(){
+  const name = prompt("Propose new customer name (requires Admin approval):");
+  if(!name) return;
+  state.approvalQueue.push({
+    id: state.nextQueueId++,
+    type:"customer", action:"add", targetId:null,
+    oldValue:null, newValue:name,
+    requestedBy: state.currentUser.role
+  });
+  showToast("New customer proposal submitted for Admin approval.", "warning");
+  renderApprovalQueue();
+  updateApprovalBadge();
+}
+
+function renderApprovalQueue(){
+  const tbody = document.getElementById("approvalQueueTable");
+  if(state.approvalQueue.length===0){
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">No pending requests.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = state.approvalQueue.map(q=>{
+    let changeDesc;
+    if(q.action==="add") changeDesc = `New ${q.type} "${q.newValue}" proposed`;
+    else changeDesc = `${capitalize(q.type)} "${q.oldValue}" renamed to "${q.newValue}"`;
+    return `
+      <tr>
+        <td>${capitalize(q.type)}</td>
+        <td>${changeDesc}</td>
+        <td>${q.requestedBy}</td>
+        <td>
+          <button class="btn btn-sm btn-success" onclick="approveQueueItem(${q.id})"><i class="fa-solid fa-check"></i> Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="rejectQueueItem(${q.id})"><i class="fa-solid fa-xmark"></i> Reject</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function approveQueueItem(qid){
+  const q = state.approvalQueue.find(x=>x.id===qid);
+  if(!q) return;
+
+  if(q.type==="route"){
+    if(q.action==="edit"){ const r = getRouteById(q.targetId); if(r) r.name = q.newValue; }
+  } else if(q.type==="salesman"){
+    if(q.action==="edit"){ const idx = state.salesmen.indexOf(q.oldValue); if(idx>-1) state.salesmen[idx]=q.newValue; }
+  } else if(q.type==="customer"){
+    if(q.action==="edit"){ const c = state.customers.find(x=>x.id===q.targetId); if(c) c.name = q.newValue; }
+    if(q.action==="add"){ state.customers.push({id:"C"+(state.nextCustomerId++), name:q.newValue, defaultRoute:""}); }
+  }
+
+  state.approvalQueue = state.approvalQueue.filter(x=>x.id!==qid);
+  showToast("Change approved and applied.", "success");
+  syncMasterDataChanges();
+}
+function rejectQueueItem(qid){
+  state.approvalQueue = state.approvalQueue.filter(x=>x.id!==qid);
+  showToast("Request rejected.", "danger");
+  renderMasterData();
+  updateApprovalBadge();
+}
+
+function syncMasterDataChanges(){
+  ensureDateEntry(currentEntryDate());
+  renderMasterData();
+  renderRouteSummaryTables();
+  renderRoutePickerButtons();
+  renderReportSelectors();
+}
+
+/* ==========================================================================
+   REPORTS PAGE
+   ========================================================================== */
+function renderReportSelectors(){
+  const custSel = document.getElementById("rep_customer_select");
+  custSel.innerHTML = state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  const routeSel = document.getElementById("rep_route_select");
+  routeSel.innerHTML = state.routes.map(r=>`<option value="${r.id}">${r.name}</option>`).join("");
+  const salesSel = document.getElementById("rep_salesman_select");
+  salesSel.innerHTML = state.salesmen.map(s=>`<option value="${s}">${s}</option>`).join("");
+}
+
+let currentReportData = { headers:[], rows:[] };
+
+function openReport(type){
+  const modalTitle = document.getElementById("reportModalTitle");
+  const subtitle = document.getElementById("reportSubtitle");
+  const headRow = document.getElementById("reportModalHeadRow");
+  const body = document.getElementById("reportModalBody");
+
+  let dateStr, entry, headers, rows;
+
+  if(type==="daily"){
+    dateStr = document.getElementById("rep_daily_date").value || todayStr();
+    entry = ensureDateEntry(dateStr);
+    const all = [...entry.morningRoutes, ...entry.eveningRoutes];
+    headers = ["Route","Salesman","Crates Out","Crates In","Shortage","Status"];
+    rows = all.map(r=>{
+      const sh = calcShortage(r);
+      return [r.routeName, r.salesman||"—", r.cratesOut??0, r.cratesIn??0, sh, sh>=20?"HIGH SHORTAGE":"Normal"];
+    });
+    modalTitle.textContent = "Daily Report";
+    subtitle.textContent = "Date: "+dateStr;
+
+  } else if(type==="customer"){
+    const custId = document.getElementById("rep_customer_select").value;
+    const cust = state.customers.find(c=>c.id===custId);
+    dateStr = todayStr();
+    entry = ensureDateEntry(dateStr);
+    const all = [...entry.morningRoutes, ...entry.eveningRoutes];
+    headers = ["Date","Route","Crates Out","Crates In","Shortage"];
+    rows = [];
+    all.forEach(r=>{
+      const cb = r.customerBreakdown.find(c=>c.name===cust?.name);
+      if(cb){
+        rows.push([dateStr, r.routeName, cb.out??0, cb.inn??0, (cb.out||0)-(cb.inn||0)]);
+      }
+    });
+    if(rows.length===0) rows.push([dateStr,"No breakdown recorded for this customer today","—","—","—"]);
+    modalTitle.textContent = "Customer-wise Statement";
+    subtitle.textContent = "Customer: " + (cust?.name || "—");
+
+  } else if(type==="route"){
+    const routeId = document.getElementById("rep_route_select").value;
+    const route = getRouteById(routeId);
+    dateStr = todayStr();
+    entry = ensureDateEntry(dateStr);
+    const r = [...entry.morningRoutes, ...entry.eveningRoutes].find(x=>x.routeId===routeId);
+    headers = ["Date","Salesman","Crates Out","Crates In","Prev Shortage","Current Shortage"];
+    rows = [[dateStr, r?r.salesman||"—":"—", r?.cratesOut??0, r?.cratesIn??0, r?.prevShortage??0, r?calcShortage(r):0]];
+    modalTitle.textContent = "Route-wise Statement";
+    subtitle.textContent = "Route: " + (route?.name || "—");
+
+  } else if(type==="salesman"){
+    const salesman = document.getElementById("rep_salesman_select").value;
+    dateStr = todayStr();
+    entry = ensureDateEntry(dateStr);
+    const all = [...entry.morningRoutes, ...entry.eveningRoutes].filter(r=>r.salesman===salesman);
+    headers = ["Route","Crates Out","Crates In","Shortage"];
+    rows = all.length ? all.map(r=>[r.routeName, r.cratesOut??0, r.cratesIn??0, calcShortage(r)])
+                       : [["No routes assigned to this salesman today","—","—","—"]];
+    modalTitle.textContent = "Salesman-wise Statement";
+    subtitle.textContent = "Salesman: " + salesman;
+  }
+
+  headRow.innerHTML = headers.map(h=>`<th>${h}</th>`).join("");
+  body.innerHTML = rows.map(row=>{
+    const shortageIdx = headers.findIndex(h=>h.toLowerCase().includes("shortage"));
+    return `<tr>${row.map((cell,i)=>{
+      const hi = (shortageIdx>-1 && i===shortageIdx && typeof cell==="number" && cell>=20);
+      return `<td class="${hi?'shortage-high':''}">${cell}</td>`;
+    }).join("")}</tr>`;
+  }).join("");
+
+  currentReportData = { headers, rows, title: modalTitle.textContent };
+
+  const modal = new bootstrap.Modal(document.getElementById("reportModal"));
+  modal.show();
+}
+
+function exportReportToExcel(){
+  const wsData = [currentReportData.headers, ...currentReportData.rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Report");
+  const filename = (currentReportData.title || "Report").replace(/\s+/g,"_") + ".xlsx";
+  XLSX.writeFile(wb, filename);
+  showToast("Excel file exported: "+filename, "success");
+}
+
+/* ==========================================================================
+   INITIALIZATION
+   ========================================================================== */
+function renderAll(){
+  renderDashboard();
+  renderRouteSummaryTables();
+  renderRoutePickerButtons();
+  renderMasterData();
+  renderReportSelectors();
+}
+
+document.getElementById("entryDate")?.addEventListener?.("keydown", e=>e.preventDefault());
+</script>
+</body>
+</html>
